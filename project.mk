@@ -1,6 +1,8 @@
 # C source files
 PROJECT_CSRC 	= main.c \
-				  src/serial.c
+				  src/serial.c \
+				  tests.server_test.c\
+				  tests.client_tests.c
 # C++ source files
 PROJECT_CPPSRC 	= 
 # Directories to search headers in
