@@ -11,10 +11,6 @@
 #include "ch.h"
 #include "hal.h"
 #include <serial.h>
-#include <lwipthread.h>
-#include <lwip/netif.h>
-#include <lwip/api.h>
-#include <string.h>
 #include <tests.h>
 
 
