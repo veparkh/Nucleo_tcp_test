@@ -10,7 +10,7 @@ err_t write_data(struct netconn *conn){
     return netconn_write(conn, "hi there!", strlen("hi there!"), NETCONN_NOCOPY);
 }
 
-void read_data(struct netconn *conn){
+void read_data(struct netconn *conn,char *arr){
     // При чтении немного сложнее
     struct netbuf *inbuf;
     uint8_t *buf;
@@ -22,8 +22,8 @@ void read_data(struct netconn *conn){
     netbuf_data(inbuf, (void **)&buf, &buflen);
     // Выводим по юарту полученные данные. Я пользовался tcp терминалом и отправлял буквы, так что принтфом пользоваться не надо было
     //sdWrite(&SD3, buf, buflen);
-    strncpy(msg, inbuf->p->payload ,buflen);
-    dbgprintf(msg);
+    strncpy(arr, inbuf->p->payload ,buflen);
+    dbgprintf(arr);
     // Очишаем память. Если этого не делать она очень быстро закончится
     netbuf_delete(inbuf);
 }
@@ -67,7 +67,7 @@ THD_FUNCTION(tcp_server, p) {
     // Напишем что-нибудь
     write_data(newconn);
     // Прочитаем что-нибудь
-    read_data(newconn);
+    read_data(newconn,msg);
     // По окончанию работы закрываем соединение и удаляем подключение
     netconn_close(newconn);
     netconn_delete(newconn);
@@ -112,7 +112,6 @@ void server_test(void){
     while (true) {
         chThdSleepMilliseconds(1000);
         palToggleLine(LINE_LED2);
-        dbgprintf("start\r\n");
     }
 }
 
