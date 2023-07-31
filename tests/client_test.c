@@ -9,7 +9,9 @@ err_t write_data_c(struct netconn *conn){
     // При записи просто отправляем указатель на буфер и количество байт. Последний аргумент - флаг для записи. Но я пока про них ничего не понимаю
 	if(strlen(msg_c)!=0)
 	{
-		return netconn_write(conn, msg_c, strlen(msg_c), NETCONN_NOCOPY);
+		err_t err = netconn_write(conn, msg_c, strlen(msg_c), NETCONN_NOCOPY);
+		strcpy(msg_c, "");
+		return err;
 	}
 	return netconn_write(conn, "hi there!", strlen("hi there!"), NETCONN_NOCOPY);
 }
@@ -26,7 +28,7 @@ void read_data_c(struct netconn *conn,char *arr){
     netbuf_data(inbuf, (void **)&buf, &buflen);
     // Выводим по юарту полученные данные. Я пользовался tcp терминалом и отправлял буквы, так что принтфом пользоваться не надо было
     //sdWrite(&SD3, buf, buflen);
-    strncpy(arr, inbuf->p->payload ,buflen);
+    strncpy(msg_c, inbuf->p->payload ,buflen);
     dbgprintf(arr);
     // Очишаем память. Если этого не делать она очень быстро закончится
     netbuf_delete(inbuf);
@@ -34,16 +36,14 @@ void read_data_c(struct netconn *conn,char *arr){
 
 THD_WORKING_AREA(wa_tcp_client, 1024);
 THD_FUNCTION(tcp_client, p) {
-
   (void)p;
   err_t err_connect;
-
 // Поленился нормально прокинуть сюда адрес, поэтому определяю его заново. Он должен быть такй же как и в мейне
   struct ip4_addr server_ip;
   IP4_ADDR(&server_ip, 192, 168, 1, 120);
 
   while (true) {
-	  chThdSleepMilliseconds(100);
+	chThdSleepMilliseconds(100);
     palToggleLine(LINE_LED3);
     struct netconn *conn = netconn_new(NETCONN_TCP);
     if(conn==NULL)
