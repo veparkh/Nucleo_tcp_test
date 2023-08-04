@@ -2,7 +2,7 @@
 #include <lwipthread.h>
 #include <lwip/netif.h>
 #include <lwip/api.h>
-#include <string.h>
+#include "common.h"
 
 char msg_c[200];
 thread_t *tp;
@@ -43,6 +43,7 @@ void read_data_c(struct netconn *conn,char *arr){
 THD_WORKING_AREA(wa_tcp_client, 1024);
 THD_FUNCTION(tcp_client, p) {
   (void)p;
+  chRegSetThreadName("client_thread");
   err_t err_connect;
 // Поленился нормально прокинуть сюда адрес, поэтому определяю его заново. Он должен быть такй же как и в мейне
   struct ip4_addr server_ip;

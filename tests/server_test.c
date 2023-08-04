@@ -2,7 +2,7 @@
 #include <lwipthread.h>
 #include <lwip/netif.h>
 #include <lwip/api.h>
-#include <string.h>
+#include "common.h"
 
 char msg[200];
 err_t write_data(struct netconn *conn){
