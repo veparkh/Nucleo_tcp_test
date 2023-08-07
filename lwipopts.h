@@ -314,7 +314,7 @@
  * (only needed if you use the sequential API, like api_lib.c)
  */
 #ifndef MEMP_NUM_NETBUF
-#define MEMP_NUM_NETBUF                 2
+#define MEMP_NUM_NETBUF                 3
 #endif
 
 /**
