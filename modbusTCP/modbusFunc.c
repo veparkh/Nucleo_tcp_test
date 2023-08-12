@@ -76,6 +76,7 @@ int16_t modbustcp_send_answer_fun_0x03(int16_t tid, int16_t pid, uint8_t uid, ui
     k++;
   }
   len=counter*2+9;
+  dbgprintf("tid: %d"" pid:%d address:%d func:%d uid:%d count:%d \n\r",tid>>8, pid>>8, address,func,uid,counter);
   return  len;
 }
 
@@ -101,6 +102,7 @@ int16_t modbustcp_send_answer_fun_0x05(int16_t tid, int16_t pid, uint8_t uid, ui
     modbus_out_buf[MB_TCP_Take_Data]=0x00;
     modbus_out_buf[MB_TCP_Take_Data+1]=0x00;
   }
+  dbgprintf("tid: %d"" pid:%d address:%d func:%d uid:%d  \n\r",tid>>8, pid>>8, address,func,uid);
   return  12;
 }
 
@@ -137,6 +139,7 @@ int16_t modbustcp_send_answer_fun_0x01(int16_t tid, int16_t pid, uint8_t uid, ui
   }
   len=9+len_data;
   return  len;
+  dbgprintf("tid: %d"" pid:%d address:%d func:%d uid:%d count:%d \n\r",tid>>8, pid>>8, address,func,uid,counter);
 }
 
 int16_t modbustcp_send_answer_fun_0x06(int16_t tid, int16_t pid, uint8_t uid, uint8_t func, int16_t address,int16_t value)
