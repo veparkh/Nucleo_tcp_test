@@ -3,7 +3,6 @@
 #include "modbusFunc.h"
 #include "modbusGet.h"
 
-extern char in_buf[100];
 
 //The Function returns the Transaction ID
 int16_t modbustcp_get_tid(uint8_t* data)

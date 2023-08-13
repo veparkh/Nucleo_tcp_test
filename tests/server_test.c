@@ -9,9 +9,6 @@
 #include "modbusRegister.h"
 #include "modbusFunc.h"
 
-#include <stdio.h>
-#include <stdint.h>
-#include <inttypes.h>
 char msg1[200];
 char msg2[200];
 mailbox_t mb_conn;
@@ -19,8 +16,6 @@ msg_t mb_conn_buffer[5];
 MAILBOX_DECL(mb_conn, mb_conn_buffer, 20);
 
 uint16_t answer_len;
-mailbox_t main_mb;
-msg_t main_mb_buffer[100];
 uint8_t modbus_out_buf[100];
 
 void write_register( uint16_t address, int16_t value){
@@ -32,6 +27,7 @@ void write_register( uint16_t address, int16_t value){
 		 MB_WRITE_REG_INT16(address-100,value);
 	 }
 }
+
 int16_t modbustcp_go(uint8_t* data)
 
 {
@@ -101,7 +97,6 @@ int16_t modbustcp_go(uint8_t* data)
     }
   return len;
 }
-
 
 
 err_t write_data(struct netconn *conn){
