@@ -3,7 +3,7 @@
 #include <lwip/netif.h>
 #include <lwip/api.h>
 #include "common.h"
-
+#include "stdint.h"
 char msg_c[200];
 
 thread_t *tp = NULL;
@@ -52,7 +52,7 @@ static THD_FUNCTION(tcp_client, req) {
   chRegSetThreadName("client_thread");
   err_t err_connect;
   struct ip4_addr server_ip;
-  IP4_ADDR(&server_ip, 192, 168, 1, 123);
+  IP4_ADDR(&server_ip, 192, 168, 1, 120);
     struct netconn *conn = netconn_new(NETCONN_TCP);
     if(conn==NULL)
     {
