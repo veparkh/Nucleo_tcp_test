@@ -74,11 +74,10 @@ int16_t modbusTCP_Write_Discrete_Register(modbus_package *query, int16_t address
 
 int16_t modbustcp_send_answer_fun_0x03(int16_t tid, int16_t pid, uint8_t uid, uint8_t func, int16_t counter,int16_t address)
 {
-  int16_t len=0,len_next=0, len_data, value;
+  int16_t len=0, len_data, value;
   uint8_t HiByteValue=0, LoByteValue=0,k=0;
   modbus_answer.tid = tid>>8|tid<<8;
   modbus_answer.pid = pid;
-  len_next=counter*2+3;
   modbus_answer.length = counter*2+3;
   modbus_answer.uid = uid;
   modbus_answer.func = func;

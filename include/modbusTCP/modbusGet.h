@@ -10,11 +10,6 @@ typedef struct modbus_package{
 	uint8_t data[100];
 }modbus_package;
 
-int16_t modbustcp_get_tid(uint8_t* data);
-int16_t modbustcp_get_pid(uint8_t* data);
-int16_t modbustcp_get_len(uint8_t* data);
-uint8_t modbustcp_get_uid(uint8_t* data);
-uint8_t modbustcp_get_func(uint8_t* data);
 int16_t modbustcp_get_address(modbus_package* data);
 int16_t modbustcp_get_count(modbus_package* data);
 uint8_t modbustcp_get_boll_value(modbus_package* data);
