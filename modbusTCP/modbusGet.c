@@ -47,10 +47,53 @@ int8_t modbustcp_get_count_byte(modbus_package* data)
 }
 
 //The Function returns multiple register
-int16_t modbustcp_get_multiple_register(modbus_package* data,uint8_t count)
+int16_t modbustcp_get_multiple_analog_register(modbus_package* data,uint8_t count)
 {
   uint8_t multiple=MB_TCP_MULTIPLE_REGISTER+count*2;
   int16_t value = data->data[multiple] << 8U;
   value |= data->data[multiple + 1];
   return value;
 }
+
+
+void changeEndianQuery(modbus_package *package){
+	package->tid = package->tid>>8 | package->tid<<8;
+	int16_t addr = (package->data[MB_TCP_ADDRESS]<<8)|package->data[MB_TCP_ADDRESS+1];
+	dbgprintf("%d\r\n",addr);
+	package->pid = package->pid>>8 | package->pid<<8;
+	//uint8_t lowAddress = package->data[MB_TCP_ADDRESS];
+	//package->data[MB_TCP_ADDRESS] = package->data[MB_TCP_ADDRESS+1];
+	//package->data[MB_TCP_ADDRESS+1]  = lowAddress;
+	//uint8_t lowCount = package->data[MB_TCP_COUNT];
+	//package->data[MB_TCP_COUNT] = package->data[MB_TCP_COUNT+1];
+	//package->data[MB_TCP_COUNT+1]  = lowCount;
+	 /*if(package->func == 0x10||package->func == 0x0F){
+		 int16_t count = modbustcp_get_count(package);
+		 for(uint8_t i=0;i<count;i++){
+			  uint8_t multiple=MB_TCP_MULTIPLE_REGISTER+i*2;
+			  uint8_t lowByte = package->data[multiple];
+			  package->data[multiple] =package->data[multiple+1];
+			  package->data[multiple+1] = lowByte;
+		 }
+	}*/
+}
+void changeEndianAnswer(modbus_package *package){
+	package->tid = package->tid>>8 | package->tid<<8;
+	package->pid = package->pid>>8 | package->pid<<8;
+	if(package->func<0x05){
+
+	}
+	else if(package->func<0x07){
+
+	}
+	else if(package->func == 0x10){
+
+	}
+}
+#define MB_FUN_READ_ANALOG_INPUT_REGISTER           0x04
+#define MB_FUN_READ_ANALOG_OUTPUT_REGISTER          0x03
+#define MB_FUN_WRITE_ANALOG_OUTPUT_REGISTER                0x06
+#define MB_FUN_READ_DISCRETE_OUTPUT_REGISTER        0x01
+#define MB_FUN_READ_DISCRETE_INPUT_REGISTER         0x02
+#define MB_FUN_WRITE_DISCRETE_OUTPUT_REGISTER              0x05
+#define MB_FUN_WRITE_MULTIPLE_ANALOG_OUTPUT_REGISTER       0x10

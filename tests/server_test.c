@@ -18,68 +18,77 @@ modbus_package *query = NULL;
 MAILBOX_DECL(mb_conn, mb_conn_buffer, 20);
 
 modbus_package modbus_answer;
-void write_register( uint16_t address, int16_t value){
-	 if(address<100)
-	  {
-		 MB_WRITE_DISCRET_REG(address,value);
-	  }
-	 else if(address>99){
-		 MB_WRITE_REG_INT16(address-100,value);
-	 }
-}
 
 int16_t modbus_query_handler(modbus_package* query)
 {
-  int16_t address, count,len=0;
-  query->tid=query->tid>>8|query->tid<<8;
-  address=modbustcp_get_address(query);
-  count=modbustcp_get_count(query);
-  dbgprintf("data->tid: %u"" pid:%d address:%d func:%d uid:%d count:%d \n\r",query->tid, query->pid, address,query->func,query->uid,count);
-  if(query->uid==MY_ID)
+  int16_t address,len = 0;
+  uint16_t count;
+  query->tid = query->tid>>8 | query->tid<<8;
+  query->length = query->length>>8 | query->length<<8;
+  address = modbustcp_get_address(query);
+  count = modbustcp_get_count(query);
+  dbgprintf("data->tid: %d"" pid:%d address:%d func:%d uid:%d count:%d length:%d\n\r",query->tid, query->pid, address,query->func,query->uid,count,query->length);
+  if(query->uid == MY_ID)
   {
     switch(query->func)
     {
-    case MB_FUN_READ_ANALOG_INPUT_REGISTER:
-    {
-      len=modbusTCP_Read_Analog_Input_Register(query,count,address);
-      return len;
-    }
-    case MB_FUN_READ_ANALOG_OUTPUT_REGISTER:
-    {
-      len=modbusTCP_Read_Analog_Output_Register(query,count,address);
-      return len;
-    }
-    case MB_FUN_WRITE_DISCRETE_REGISTER:
-    {
-      write_register(address, modbustcp_get_boll_value(query));
-      len=modbusTCP_Write_Discrete_Register(query,address,Discrete_Register[address]);
-      return len;
-    }
     case MB_FUN_READ_DISCRETE_OUTPUT_REGISTER:
     {
       len=modbusTCP_Read_Discrete_Output_Register(query,count,address);
       return len;
     }
     case MB_FUN_READ_DISCRETE_INPUT_REGISTER:
+     {
+         len=modbusTCP_Read_Discrete_Input_Register(query,count,address);
+         return len;
+    }
+    case MB_FUN_READ_ANALOG_OUTPUT_REGISTER:
     {
-      len=modbusTCP_Read_Discrete_Input_Register(query,count,address);
+      len=modbusTCP_Read_Analog_Output_Register(query,count,address);
       return len;
     }
-    case MB_FUN_WRITE_ANALOG_REGISTER:
+    case MB_FUN_READ_ANALOG_INPUT_REGISTER:
     {
-      write_register(address+100, modbustcp_get_value(query));
-      len=modbusTCP_Write_Analog_Register(query, address,Analog_Register[address]);
+      len=modbusTCP_Read_Analog_Input_Register(query,count,address);
       return len;
     }
-    case MB_FUN_WRITE_MULTIPLE_ANALOG_REGISTER:
+
+    case MB_FUN_WRITE_DISCRETE_OUTPUT_REGISTER://count в данном случае значение
+    {
+    	if(count){
+    		MB_WRITE_DISCRETE_OUTPUT_REGISTER(address,1);
+    	}
+    	 else{
+    		 MB_WRITE_DISCRETE_OUTPUT_REGISTER(address,0);
+    	 }
+      len=modbusTCP_Write_Discrete_Register(query,address,Discrete_Output_Register[address]);
+      return len;
+    }
+    case MB_FUN_WRITE_ANALOG_OUTPUT_REGISTER:
+    {
+      MB_WRITE_ANALOG_OUTPUT_REGISTER(address,modbustcp_get_value(query));
+      len=modbusTCP_Write_Analog_Register(query, address,Analog_Output_Register[address]);
+      return len;
+    }
+    case MB_FUN_WRITE_MULTIPLE_ANALOG_OUTPUT_REGISTER:
        {
-         for(uint8_t perem=0;perem<count;perem++)
+         for(uint8_t i=0;i<count;i++)
          {
-           write_register(address+100+perem, modbustcp_get_multiple_register(query,perem));
+           MB_WRITE_ANALOG_OUTPUT_REGISTER(address+i,modbustcp_get_multiple_analog_register(query,i));
          }
          len=modbusTCP_Write_Multiple_Analog_Register(query, address,count);
          return len;
        }
+    case MB_FUN_WRITE_MULTIPLE_DIGITAL_OUTPUT_REGISTER:{
+    	 for(uint8_t i=0;i<count;i++)
+    	 {
+    		 uint8_t multiple = MB_TCP_MULTIPLE_REGISTER+i*2;
+    		   uint8_t value = query->data[multiple];
+    		   MB_WRITE_DISCRETE_OUTPUT_REGISTER(address+i,value);
+    	 }
+    	 len = modbusTCP_Write_Multiple_Discrete_Register(query, address,count);
+    	 return len;
+    }
     }
   }
   return -10;
@@ -144,6 +153,7 @@ THD_FUNCTION(conn_handler, arr) {
 					timeout = 1000;
 					continue;
 				}
+
 				write_data(conn, answer_len);
 			}
 			else if(recv_err == -3 && timeout == 1000){
@@ -220,8 +230,10 @@ void server_test(void){
     chThdSleepSeconds(3);
 
     for(int i =0;i<REGISTER_LEN;i++){
-    	Analog_Register[i]=i;
-    	Discrete_Register[i] = i % 2;
+    	Analog_Output_Register[i]=i;
+    	Discrete_Input_Register[i] = i % 2;
+    	Analog_Input_Register[i]=i;
+    	Discrete_Output_Register[i] = i % 2;
     }
 
     chThdCreateStatic(wa_tcp_server, 1024, NORMALPRIO, tcp_server, &ip);
