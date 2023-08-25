@@ -8,16 +8,18 @@
 #include "modbusGet.h"
 #include "modbusRegister.h"
 #include "modbusFunc.h"
-
+#include <stdio.h>
 char msg1[200];
 char msg2[200];
-bool connection = false;
+int connection = 234;
 mailbox_t mb_conn;
 msg_t mb_conn_buffer[5];
 modbus_package *query = NULL;
 MAILBOX_DECL(mb_conn, mb_conn_buffer, 20);
 
 modbus_package modbus_answer;
+
+
 
 int16_t modbus_query_handler(modbus_package* query)
 {
@@ -115,6 +117,24 @@ err_t read_data(struct netconn *conn,char *arr,int timeout){
     return recv_error;
 }
 
+void write_log(struct netconn *conn,char *arr){
+	err_t recv_err;
+	int tcp_code;
+	while(connection){
+		recv_err= read_data(conn, arr, 1000);
+		if(recv_err==ERR_TIMEOUT){
+			write_data(conn, -10);
+		}else if(recv_err == ERR_OK){
+			if(sscanf((char*)query,"%d",&tcp_code)==1){
+				if(tcp_code==100){
+				break;
+				}
+			}
+		}
+	}
+}
+
+
 THD_WORKING_AREA(tcp_conn_handler1, 1024);
 THD_WORKING_AREA(tcp_conn_handler2, 1024);
 THD_WORKING_AREA(tcp_conn_handler3, 1024);
@@ -128,41 +148,33 @@ THD_FUNCTION(conn_handler, arr) {
 	while(true)
 	{
 		chMBFetchTimeout (&mb_conn, &cast_letter, TIME_INFINITE);
-
 		conn = (struct netconn*) cast_letter;
-		int timeout = 300000;
 		palToggleLine(LINE_LED1);
 		while(true)
 		{
-			recv_err = read_data(conn,arr,timeout);
-			/*if(!connection)
-				break;*/
-			if (recv_err == 0)
-			{
+			for(int i =0 ;i<300;i++){
+				recv_err = read_data(conn,arr,1000);
+				dbgprintf("connection = %d", connection);
+				if((!connection)||(recv_err==0)||(recv_err!=ERR_TIMEOUT))
+					break;
+
+			}
+			if (recv_err == 0 && connection){
 				answer_len = modbus_query_handler(query);
 				dbgprintf("answer-len = %d", answer_len);
-				dbgprintf("tiimeout = %d", timeout);
-				if (answer_len == -10 && timeout == 1000)
-				{
-
-					timeout = 300000;
-					continue;
+				if (answer_len == -10){
+					int tcp_code;
+					if(sscanf((char*)query,"%d",&tcp_code)==1){
+						if(tcp_code==100){
+							write_log(conn, arr);
+						}
+					}
 				}
-				if (answer_len == -10 && timeout == 300000)
-				{
-					timeout = 1000;
-					continue;
+				}
+				else{
+					write_data(conn, answer_len);
 				}
 
-				write_data(conn, answer_len);
-			}
-			else if(recv_err == -3 && timeout == 1000){
-				write_data(conn, -10);
-			}
-			else
-			{
-				break;
-			}
 
 		}
 			netconn_close(conn);
@@ -196,14 +208,14 @@ void up_callback_s(void *p)
 {
 	(void)p;
 	dbgprintf("cable in\r\n");
-	connection = true;
+	connection = 1;
 
 }
 void down_callback_s(void *p)
 {
 	(void)p;
 	dbgprintf("cable out\r\n");
-	connection = false;
+	connection = 0;
 }
 
 void server_test(void){
@@ -223,8 +235,8 @@ void server_test(void){
     opts.gateway = gateway.addr;
     opts.netmask = netmask.addr;
     opts.macaddress = macaddr;
-    opts.link_up_cb = NULL;//up_callback_s;
-    opts.link_down_cb = NULL;//down_callback_s;
+    opts.link_up_cb = NULL;
+    opts.link_down_cb =  NULL;
 
     lwipInit(&opts);
     chThdSleepSeconds(3);
