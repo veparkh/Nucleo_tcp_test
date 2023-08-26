@@ -11,7 +11,7 @@
 #include <stdio.h>
 char msg1[200];
 char msg2[200];
-int connection = 234;
+bool isConnection = false;
 mailbox_t mb_conn;
 msg_t mb_conn_buffer[5];
 modbus_package *query = NULL;
@@ -93,6 +93,8 @@ int16_t modbus_query_handler(modbus_package* query)
     }
     }
   }
+  query->tid = query->tid>>8 | query->tid<<8;
+  query->length = query->length>>8 | query->length<<8;
   return -10;
 }
 
@@ -117,21 +119,26 @@ err_t read_data(struct netconn *conn,char *arr,int timeout){
     return recv_error;
 }
 
-void write_log(struct netconn *conn,char *arr){
+int write_log(struct netconn *conn,char *arr){
 	err_t recv_err;
 	int tcp_code;
-	while(connection){
+	while(isConnection){
 		recv_err= read_data(conn, arr, 1000);
 		if(recv_err==ERR_TIMEOUT){
 			write_data(conn, -10);
 		}else if(recv_err == ERR_OK){
 			if(sscanf((char*)query,"%d",&tcp_code)==1){
+				dbgprintf("tcp_code log:%d", tcp_code);
 				if(tcp_code==100){
-				break;
+				return ERR_OK;
 				}
 			}
+		}else
+		{
+			return recv_err;
 		}
 	}
+	return ERR_CLSD;
 }
 
 
@@ -154,27 +161,32 @@ THD_FUNCTION(conn_handler, arr) {
 		{
 			for(int i =0 ;i<300;i++){
 				recv_err = read_data(conn,arr,1000);
-				dbgprintf("connection = %d", connection);
-				if((!connection)||(recv_err==0)||(recv_err!=ERR_TIMEOUT))
+				dbgprintf("connection = %d", isConnection);
+				if((!isConnection)||(recv_err==0)||(recv_err!=ERR_TIMEOUT))
 					break;
 
 			}
-			if (recv_err == 0 && connection){
+			if (recv_err == 0 && isConnection){
 				answer_len = modbus_query_handler(query);
 				dbgprintf("answer-len = %d", answer_len);
 				if (answer_len == -10){
 					int tcp_code;
 					if(sscanf((char*)query,"%d",&tcp_code)==1){
 						if(tcp_code==100){
-							write_log(conn, arr);
+							if(write_log(conn, arr)!=ERR_OK)
+								break;
+
 						}
 					}
-				}
+					dbgprintf("tcp_code:%d",tcp_code);
 				}
 				else{
 					write_data(conn, answer_len);
 				}
-
+			}
+			else{
+				break;
+			}
 
 		}
 			netconn_close(conn);
@@ -208,14 +220,14 @@ void up_callback_s(void *p)
 {
 	(void)p;
 	dbgprintf("cable in\r\n");
-	connection = 1;
+	isConnection = 1;
 
 }
 void down_callback_s(void *p)
 {
 	(void)p;
 	dbgprintf("cable out\r\n");
-	connection = 0;
+	isConnection = 0;
 }
 
 void server_test(void){
@@ -235,8 +247,8 @@ void server_test(void){
     opts.gateway = gateway.addr;
     opts.netmask = netmask.addr;
     opts.macaddress = macaddr;
-    opts.link_up_cb = NULL;
-    opts.link_down_cb =  NULL;
+    opts.link_up_cb = up_callback_s;
+    opts.link_down_cb =  down_callback_s;
 
     lwipInit(&opts);
     chThdSleepSeconds(3);

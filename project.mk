@@ -15,6 +15,5 @@ PROJECT_INCDIR	= include\
 # Additional libraries
 PROJECT_LIBS	=
 # Compiler options
-PROJECT_OPT     =
-
+PROJECT_OPT     = --specs=nosys.specs
 # Additional .mk files are included here
