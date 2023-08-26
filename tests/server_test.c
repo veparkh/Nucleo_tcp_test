@@ -16,7 +16,6 @@ mailbox_t mb_conn;
 msg_t mb_conn_buffer[5];
 modbus_package *query = NULL;
 MAILBOX_DECL(mb_conn, mb_conn_buffer, 20);
-
 modbus_package modbus_answer;
 
 
@@ -72,15 +71,6 @@ int16_t modbus_query_handler(modbus_package* query)
       len=modbusTCP_Write_Analog_Register(query, address,Analog_Output_Register[address]);
       return len;
     }
-    case MB_FUN_WRITE_MULTIPLE_ANALOG_OUTPUT_REGISTER:
-       {
-         for(uint8_t i=0;i<count;i++)
-         {
-           MB_WRITE_ANALOG_OUTPUT_REGISTER(address+i,modbustcp_get_multiple_analog_register(query,i));
-         }
-         len=modbusTCP_Write_Multiple_Analog_Register(query, address,count);
-         return len;
-       }
     case MB_FUN_WRITE_MULTIPLE_DIGITAL_OUTPUT_REGISTER:{
     	 for(uint8_t i=0;i<count;i++)
     	 {
@@ -91,6 +81,29 @@ int16_t modbus_query_handler(modbus_package* query)
     	 len = modbusTCP_Write_Multiple_Discrete_Register(query, address,count);
     	 return len;
     }
+    case MB_FUN_WRITE_MULTIPLE_ANALOG_OUTPUT_REGISTER:{
+             for(uint8_t i=0;i<count;i++)
+             {
+               MB_WRITE_ANALOG_OUTPUT_REGISTER(address+i,modbustcp_get_multiple_analog_register(query,i));
+             }
+             len=modbusTCP_Write_Multiple_Analog_Register(query, address,count);
+             return len;
+    	}
+    case MB_FUN_WRITE_READ_MULTIPLE_ANALOG_OUTPUT_REGISTER:
+    	{
+    		int16_t write_start_address = query->data[4]<<8|query->data[6];
+    		int8_t write_count = query->data[6]<<8|query->data[7];
+			dbgprintf("write_count:%d",write_count);
+    		int16_t write_value;
+    		for(int i = 0;i<write_count;i++){
+    			write_value = query->data[9+2*i]<<8 | query->data[9+2*i+1];
+    			MB_WRITE_ANALOG_OUTPUT_REGISTER(write_start_address+i,write_value);
+    		}
+    		int16_t read_start_address = query->data[0]<<8|query->data[1]; // @suppress("Type cannot be resolved")
+    		int16_t read_count = query->data[2]<<8|query->data[3]; // @suppress("Type cannot be resolved")
+    		len = modbusTCP_Read_Write_Multiple_Analog_Output_Register(query, read_count,read_start_address);
+    		return len;
+    	}
     }
   }
   query->tid = query->tid>>8 | query->tid<<8;

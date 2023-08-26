@@ -74,7 +74,10 @@ int16_t modbusTCP_Write_Multiple_Discrete_Register(modbus_package *query, int16_
 	return modbustcp_send_answer_fun_0x10or0x0F(query->tid, query->pid, query->uid, query->func, address, count);
 }
 
-
+int16_t modbusTCP_Read_Write_Multiple_Analog_Output_Register(modbus_package *query, int16_t count,int16_t start_address)///////////////////////////////
+{
+	return modbustcp_send_answer_fun_0x17(query->tid, query->pid, query->uid, query->func, count, start_address);
+}
 
 int16_t modbustcp_send_answer_fun_0x03or0x04(int16_t tid, int16_t pid, uint8_t uid, uint8_t func, int16_t counter,int16_t address)
 {
@@ -191,4 +194,23 @@ int16_t modbustcp_send_answer_fun_0x10or0x0F(int16_t tid, int16_t pid, uint8_t u
 	modbus_answer.data[MB_TCP_TAKE_DATA]=count>>8;
 	modbus_answer.data[MB_TCP_TAKE_DATA+1]=count;
 	return 12;
+}
+
+int16_t modbustcp_send_answer_fun_0x17(int16_t tid, int16_t pid, uint8_t uid, uint8_t func, int16_t count,int16_t start_address){ // @suppress("Type cannot be resolved")
+		modbus_answer.tid = tid>>8|tid<<8;
+		modbus_answer.pid = pid;
+		modbus_answer.length= 1+1+1+count*2;
+		modbus_answer.length = modbus_answer.length>>8|modbus_answer.length<<8;
+		modbus_answer.uid = uid;
+		modbus_answer.func  = func;
+		modbus_answer.data[MB_TCP_LENGTH] = 2*count;
+		dbgprintf("start_address:%d", start_address);
+
+		for(int i=0;i<count;i++){
+			dbgprintf("start_address:%d/r/n",start_address+i);
+			dbgprintf("value:%d/r/n",MB_READ_ANALOG_OUTPUT_REGISTER(start_address+i));
+			modbus_answer.data[2*i+1] = MB_READ_ANALOG_OUTPUT_REGISTER(start_address+i)>>8;
+			modbus_answer.data[2*i+2] = MB_READ_ANALOG_OUTPUT_REGISTER(start_address+i);
+		}
+		return count*2+9;
 }

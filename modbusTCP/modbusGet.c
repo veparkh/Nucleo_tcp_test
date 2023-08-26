@@ -90,10 +90,4 @@ void changeEndianAnswer(modbus_package *package){
 
 	}
 }
-#define MB_FUN_READ_ANALOG_INPUT_REGISTER           0x04
-#define MB_FUN_READ_ANALOG_OUTPUT_REGISTER          0x03
-#define MB_FUN_WRITE_ANALOG_OUTPUT_REGISTER                0x06
-#define MB_FUN_READ_DISCRETE_OUTPUT_REGISTER        0x01
-#define MB_FUN_READ_DISCRETE_INPUT_REGISTER         0x02
-#define MB_FUN_WRITE_DISCRETE_OUTPUT_REGISTER              0x05
-#define MB_FUN_WRITE_MULTIPLE_ANALOG_OUTPUT_REGISTER       0x10
+
