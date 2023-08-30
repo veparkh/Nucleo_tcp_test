@@ -15,6 +15,6 @@ int16_t modbustcp_get_count(modbus_package* data);
 uint8_t modbustcp_get_boll_value(modbus_package* data);
 int16_t modbustcp_get_value(modbus_package* data);
 int8_t modbustcp_get_count_byte(modbus_package* data);
-int16_t modbustcp_get_multiple_analog_register(modbus_package* data,uint8_t count);
+int16_t mb_get_multiple_analog_register(modbus_package* data,uint8_t count);
 
 #endif /* MODBUSGET */

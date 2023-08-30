@@ -47,7 +47,7 @@ int8_t modbustcp_get_count_byte(modbus_package* data)
 }
 
 //The Function returns multiple register
-int16_t modbustcp_get_multiple_analog_register(modbus_package* data,uint8_t count)
+int16_t mb_get_multiple_analog_register(modbus_package* data,uint8_t count)
 {
   uint8_t multiple=MB_TCP_MULTIPLE_REGISTER+count*2;
   int16_t value = data->data[multiple] << 8U;

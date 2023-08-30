@@ -20,7 +20,7 @@ int tcp_query_handler(modbus_package *query, struct netconn *conn){
 	if(sscanf((char*)query,"%d",&tcp_code)==1){
 		switch(tcp_code){
 			case 100:{
-				return write_log(conn);
+				return write_log(conn,query );
 				break;
 			}
 		}
@@ -42,20 +42,12 @@ int16_t modbus_query_handler(modbus_package* query,modbus_package *modbus_answer
 	switch(query->func)
 	{
 		case MB_FUN_READ_DISCRETE_OUTPUT_REGISTER:
-		{
-			len = modbustcp_send_answer_fun_0x01or0x02(query,count, address, modbus_answer);
-			break;
-		}
 		case MB_FUN_READ_DISCRETE_INPUT_REGISTER:
 		 {
 			 len = modbustcp_send_answer_fun_0x01or0x02(query,count, address,modbus_answer);
 			 break;
 		}
 		case MB_FUN_READ_ANALOG_OUTPUT_REGISTER:
-		{
-			 len = modbustcp_send_answer_fun_0x03or0x04(query,count, address, modbus_answer);
-			 break;
-		}
 		case MB_FUN_READ_ANALOG_INPUT_REGISTER:
 		{
 			len = modbustcp_send_answer_fun_0x03or0x04(query, count, address,modbus_answer);
@@ -64,67 +56,29 @@ int16_t modbus_query_handler(modbus_package* query,modbus_package *modbus_answer
 
 		case MB_FUN_WRITE_DISCRETE_OUTPUT_REGISTER://count в данном случае значение
 		{
-			if(count)
-			{
-				MB_WRITE_DISCRETE_OUTPUT_REGISTER(address,1);
-			}
-			 else
-			 {
-				 MB_WRITE_DISCRETE_OUTPUT_REGISTER(address,0);
-			 }
-			len = modbustcp_send_answer_fun_0x05(query, address, Discrete_Output_Register[address],modbus_answer);
+			len = modbustcp_send_answer_fun_0x05(query, address, count,modbus_answer);
 			break;
 		}
 		case MB_FUN_WRITE_ANALOG_OUTPUT_REGISTER:
 		{
-			MB_WRITE_ANALOG_OUTPUT_REGISTER(address,modbustcp_get_value(query));
-			len = modbustcp_send_answer_fun_0x06( query, address, Analog_Output_Register[address],modbus_answer);
+			len = modbustcp_send_answer_fun_0x06( query, address, modbustcp_get_value(query),modbus_answer);
 			break;
 		}
 		case MB_FUN_WRITE_MULTIPLE_DIGITAL_OUTPUT_REGISTER:
-		{
-			for(uint8_t i=0;i<count;i++)
-			{
-				uint8_t multiple = MB_TCP_MULTIPLE_REGISTER+i*2;
-				uint8_t value = query->data[multiple];
-				MB_WRITE_DISCRETE_OUTPUT_REGISTER(address+i,value);
-			}
-			len = modbustcp_send_answer_fun_0x10or0x0F(query,  address, count,modbus_answer);
-			break;
-		}
 		case MB_FUN_WRITE_MULTIPLE_ANALOG_OUTPUT_REGISTER:
 		{
-
-			for(uint8_t i=0;i<count;i++)
-			{
-				MB_WRITE_ANALOG_OUTPUT_REGISTER(address+i,modbustcp_get_multiple_analog_register(query,i));
-			}
-			palToggleLine(LINE_LED1);
 			len = modbustcp_send_answer_fun_0x10or0x0F(query,  address, count,modbus_answer);
 			break;
-
 		}
 		case MB_FUN_WRITE_READ_MULTIPLE_ANALOG_OUTPUT_REGISTER:
 		{
-			int16_t write_start_address = query->data[4]<<8|query->data[6];
-			int8_t write_count = query->data[6]<<8|query->data[7];
-			dbgprintf("write_count:%d",write_count);
-			int16_t write_value;
-			for(int i = 0;i<write_count;i++){
-				write_value = query->data[9+2*i]<<8 | query->data[9+2*i+1];
-				MB_WRITE_ANALOG_OUTPUT_REGISTER(write_start_address+i,write_value);
-			}
-			int16_t read_start_address = query->data[0]<<8|query->data[1];
-			int16_t read_count = query->data[2]<<8|query->data[3];
-			len = modbustcp_send_answer_fun_0x17(query, read_count,read_start_address,modbus_answer);
+			len = modbustcp_send_answer_fun_0x17(query,modbus_answer);
 			break;
 		}
 		default:
 		{
-			modbus_answer->func = 128+query->func;
-			modbus_answer->data[0] = 0x01;
-			modbus_answer->length=3;
-			len = 7+2;
+			len = fill_exception(query->func, 0x01, modbus_answer);
+			break;
 		}
 	}
 	query = NULL;

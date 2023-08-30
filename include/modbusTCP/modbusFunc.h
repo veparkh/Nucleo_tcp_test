@@ -26,11 +26,13 @@
 
 int16_t modbustcp_send_answer_fun_0x01or0x02(modbus_package *query, int16_t counter, int16_t address,modbus_package *modbus_answer);
 int16_t modbustcp_send_answer_fun_0x03or0x04(modbus_package *query, int16_t counter, int16_t address,modbus_package *modbus_answer);
-int16_t modbustcp_send_answer_fun_0x05(modbus_package *query, int16_t address,uint8_t boole,modbus_package *modbus_answer);
+int16_t modbustcp_send_answer_fun_0x05(modbus_package *query, int16_t address,uint16_t value,modbus_package *modbus_answer);
 int16_t modbustcp_send_answer_fun_0x06(modbus_package *query, int16_t address,int16_t value,modbus_package *modbus_answer);
 int16_t modbustcp_send_answer_fun_0x10or0x0F(modbus_package *query, int16_t address,int16_t count_byte,modbus_package *modbus_answer);
-int16_t modbustcp_send_answer_fun_0x17(modbus_package *query,int16_t count, int16_t address,modbus_package *modbus_answer);
-
+int16_t modbustcp_send_answer_fun_0x17(modbus_package *query,modbus_package *modbus_answer);
+uint8_t fill_exception(uint8_t func, uint8_t err_code, modbus_package *modbus_answer);
 bool is_modbus_query(modbus_package *query,int16_t buflen);
 #endif /* MODBUSFUNC */
 void change_endian(modbus_package *query);
+int8_t get_coil_value(modbus_package *query,uint16_t i, uint8_t shift);
+//int write_log(struct netconn *conn, modbus_package *query);
