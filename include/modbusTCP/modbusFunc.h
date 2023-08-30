@@ -23,23 +23,14 @@
 #define MB_FUN_WRITE_MULTIPLE_ANALOG_OUTPUT_REGISTER  		0x10
 #define MB_FUN_WRITE_READ_MULTIPLE_ANALOG_OUTPUT_REGISTER	0x17
 
-int16_t modbusTCP_Read_Analog_Input_Register(modbus_package *query, int16_t counter, int16_t address);
-int16_t modbusTCP_Read_Analog_Output_Register(modbus_package *query, int16_t counter, int16_t address);
-int16_t modbusTCP_Read_Discrete_Output_Register(modbus_package *query, int16_t counter, int16_t address);
-int16_t modbusTCP_Read_Discrete_Input_Register(modbus_package *query, int16_t counter, int16_t address);
-int16_t modbusTCP_Write_Analog_Register(modbus_package *query, int16_t address,int16_t value);
-int16_t modbusTCP_Write_Discrete_Register(modbus_package *query, int16_t address,uint8_t boole);
-int16_t modbusTCP_Write_Multiple_Analog_Register(modbus_package *query, int16_t address,int16_t count);
-int16_t modbusTCP_Write_Multiple_Discrete_Register(modbus_package *query, int16_t address,int16_t count);
-int16_t modbusTCP_Read_Write_Multiple_Analog_Output_Register(modbus_package *query, int16_t count,int16_t start_address);
 
-int16_t modbustcp_send_answer_fun_0x01or0x02(int16_t tid, int16_t pid, uint8_t uid, uint8_t func, int16_t counter, int16_t address);
-int16_t modbustcp_send_answer_fun_0x03or0x04(int16_t tid, int16_t pid, uint8_t uid, uint8_t func, int16_t counter, int16_t address);
-int16_t modbustcp_send_answer_fun_0x05(int16_t tid, int16_t pid, uint8_t uid, uint8_t func, int16_t address,uint8_t boole);
-int16_t modbustcp_send_answer_fun_0x06(int16_t tid, int16_t pid, uint8_t uid, uint8_t func, int16_t address,int16_t value);
-int16_t modbustcp_send_answer_fun_0x10or0x0F(int16_t tid, int16_t pid, uint8_t uid, uint8_t func, int16_t address,int16_t count_byte);
+int16_t modbustcp_send_answer_fun_0x01or0x02(modbus_package *query, int16_t counter, int16_t address,modbus_package *modbus_answer);
+int16_t modbustcp_send_answer_fun_0x03or0x04(modbus_package *query, int16_t counter, int16_t address,modbus_package *modbus_answer);
+int16_t modbustcp_send_answer_fun_0x05(modbus_package *query, int16_t address,uint8_t boole,modbus_package *modbus_answer);
+int16_t modbustcp_send_answer_fun_0x06(modbus_package *query, int16_t address,int16_t value,modbus_package *modbus_answer);
+int16_t modbustcp_send_answer_fun_0x10or0x0F(modbus_package *query, int16_t address,int16_t count_byte,modbus_package *modbus_answer);
+int16_t modbustcp_send_answer_fun_0x17(modbus_package *query,int16_t count, int16_t address,modbus_package *modbus_answer);
 
-int16_t modbustcp_send_answer_fun_0x17(int16_t tid, int16_t pid, uint8_t uid, uint8_t func,int16_t count, int16_t address);
-
-
+bool is_modbus_query(modbus_package *query,int16_t buflen);
 #endif /* MODBUSFUNC */
+void change_endian(modbus_package *query);
