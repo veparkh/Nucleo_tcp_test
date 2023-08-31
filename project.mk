@@ -1,17 +1,22 @@
 # C source files
 PROJECT_CSRC 	= main.c \
-				  src/serial.c \
+				  src/serial.c\
+				  src/tcp/funcTCP.c\
+				  src/tcp/threadsTCP.c\
 				  tests/server_test.c\
 				  tests/client_test.c\
-				  modbusTCP/modbusFunc.c \
-				  modbusTCP/modbusGet.c \
-				  modbusTCP/modbusRegister.c\
+				  src/modbus/modbusFunc.c \
+				  src/modbus/modbusGet.c \
+				  src/modbus/modbusRegister.c\
+				  
 
 # C++ source files
 PROJECT_CPPSRC 	= 
 # Directories to search headers in
 PROJECT_INCDIR	= include\
-				include/modbusTCP\
+				include/modbus\
+				include/tcp\
+				
 # Additional libraries
 PROJECT_LIBS	=
 # Compiler options

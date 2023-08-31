@@ -6,9 +6,6 @@ uint8_t Discrete_Input_Register[REGISTER_LEN];
 int16_t Analog_Output_Register[REGISTER_LEN];
 uint8_t Discrete_Output_Register[REGISTER_LEN];
 
-
-
-
 bool read_discrete_input(int16_t address, uint8_t *val){
 	*val = Discrete_Input_Register[address];
 	return true;

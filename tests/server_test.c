@@ -2,205 +2,25 @@
 #include <lwipthread.h>
 #include <lwip/netif.h>
 #include <lwip/api.h>
-
-#include "common.h"
-
+#include "modbusFunc.h"
 #include "modbusGet.h"
 #include "modbusRegister.h"
-#include "modbusFunc.h"
+#include "funcTCP.h"
+#include "common.h"
+#include "threadsTCP.h"
 #include <stdio.h>
+
 
 bool isConnection = false;
 mailbox_t mb_conn;
 msg_t mb_conn_buffer[5];
 MAILBOX_DECL(mb_conn, mb_conn_buffer, 20);
 
-int tcp_query_handler(modbus_package *query, struct netconn *conn){
-	int tcp_code;
-	if(sscanf((char*)query,"%d",&tcp_code)==1){
-		switch(tcp_code){
-			case 100:{
-				return write_log(conn,query );
-				break;
-			}
-		}
-	}
-	return ERR_VAL;
-}
-
-int16_t modbus_query_handler(modbus_package* query,modbus_package *modbus_answer)
-{
-	int16_t address,len = -10;
-	uint16_t count;
-	modbus_answer->tid = query->tid;
-	modbus_answer->pid = query->pid;
-	modbus_answer->uid = query->uid;
-	modbus_answer->func = query->func;
-	address = modbustcp_get_address(query);
-	count = modbustcp_get_count(query);
-	dbgprintf("data->tid: %d"" pid:%d address:%d func:%d uid:%d count:%d length:%d\n\r",query->tid, query->pid, address,query->func,query->uid,count,query->length);
-	switch(query->func)
-	{
-		case MB_FUN_READ_DISCRETE_OUTPUT_REGISTER:
-		case MB_FUN_READ_DISCRETE_INPUT_REGISTER:
-		 {
-			 len = modbustcp_send_answer_fun_0x01or0x02(query,count, address,modbus_answer);
-			 break;
-		}
-		case MB_FUN_READ_ANALOG_OUTPUT_REGISTER:
-		case MB_FUN_READ_ANALOG_INPUT_REGISTER:
-		{
-			len = modbustcp_send_answer_fun_0x03or0x04(query, count, address,modbus_answer);
-			break;
-		}
-
-		case MB_FUN_WRITE_DISCRETE_OUTPUT_REGISTER://count в данном случае значение
-		{
-			len = modbustcp_send_answer_fun_0x05(query, address, count,modbus_answer);
-			break;
-		}
-		case MB_FUN_WRITE_ANALOG_OUTPUT_REGISTER:
-		{
-			len = modbustcp_send_answer_fun_0x06( query, address, modbustcp_get_value(query),modbus_answer);
-			break;
-		}
-		case MB_FUN_WRITE_MULTIPLE_DIGITAL_OUTPUT_REGISTER:
-		case MB_FUN_WRITE_MULTIPLE_ANALOG_OUTPUT_REGISTER:
-		{
-			len = modbustcp_send_answer_fun_0x10or0x0F(query,  address, count,modbus_answer);
-			break;
-		}
-		case MB_FUN_WRITE_READ_MULTIPLE_ANALOG_OUTPUT_REGISTER:
-		{
-			len = modbustcp_send_answer_fun_0x17(query,modbus_answer);
-			break;
-		}
-		default:
-		{
-			len = fill_exception(query->func, 0x01, modbus_answer);
-			break;
-		}
-	}
-	query = NULL;
-	change_endian(modbus_answer);
-	return len;
-}
-
-int32_t read_data(struct netconn *conn,int timeout,modbus_package **query){
-
-    struct netbuf *inbuf = NULL;
-    netconn_set_recvtimeout(conn,timeout);
-    int32_t recv_error_or_buflen = netconn_recv(conn, &inbuf);
-    if (recv_error_or_buflen==0){
-    	netbuf_data(inbuf, (void **)query, &recv_error_or_buflen);
-    }
-    netbuf_delete(inbuf);
-    chThdSleepMilliseconds(40);
-    return recv_error_or_buflen;
-}
-
-int write_log(struct netconn *conn, modbus_package *query){
-	int recv_err_or_length;
-	int tcp_code;
-	while(isConnection){
-		recv_err_or_length = read_data(conn, 1000, &query);
-		if(recv_err_or_length==ERR_TIMEOUT){
-			netconn_write(conn, "hi,i am log. I can't do something workful now, i just wanna say u got this\r\n",76, NETCONN_NOCOPY);
-		}
-		else if(recv_err_or_length > ERR_OK){
-				if(sscanf((char*)query,"%d",&tcp_code)==1){
-					dbgprintf("tcp_code log:%d", tcp_code);
-					if(tcp_code==100){
-						return ERR_OK;
-					}
-				}
-		}else
-		{
-			return recv_err_or_length;
-		}
-	}
-	return ERR_RTE;
-}
-
-THD_WORKING_AREA(tcp_conn_handler1, 1024);
-THD_WORKING_AREA(tcp_conn_handler2, 1024);
+THD_WORKING_AREA(tcp_conn_handler1, 1024); // @suppress("Symbol is not resolved") // @suppress("Type cannot be resolved")
+THD_WORKING_AREA(tcp_conn_handler2, 1024); // @suppress("Symbol is not resolved") // @suppress("Type cannot be resolved")
 THD_WORKING_AREA(tcp_conn_handler3, 1024);
 THD_WORKING_AREA(tcp_conn_handler4, 1024);
-THD_FUNCTION(conn_handler, p){
-	(void) p;
-	chRegSetThreadName("conn_handler");
-	msg_t cast_letter;
-	modbus_package modbus_answer;
-	modbus_package *query = NULL;
-	int16_t answer_len;
-	struct netconn *conn;
-	int recv_err_or_buflen;
-	while(true)
-	{
-		chMBFetchTimeout (&mb_conn, &cast_letter, TIME_INFINITE);
-		conn = (struct netconn*) cast_letter;
-		while(true)
-		{
-			for(int i =0 ;i<300;i++){
-				chThdSleepMilliseconds(100);
-				recv_err_or_buflen = read_data(conn, 1000, &query);
-				if((!isConnection)||(recv_err_or_buflen>0)||(recv_err_or_buflen!=ERR_TIMEOUT))
-					break;
-			}
-			if (recv_err_or_buflen > 0 && isConnection){
-				change_endian(query);
-				if(is_modbus_query(query,recv_err_or_buflen)){
-					answer_len = modbus_query_handler(query, &modbus_answer);
-					netconn_write(conn, &modbus_answer, answer_len, NETCONN_NOCOPY);
-				}
-				else{
-					change_endian(query);
-					if(tcp_query_handler(query, conn)!=ERR_OK)
-						break;
-					}
-			}
-			else{
-				break;
-			}
-		}
-		netconn_close(conn);
-		netconn_delete(conn);
-	}
-}
-
 THD_WORKING_AREA(wa_tcp_server, 1024);
-THD_FUNCTION(tcp_server, ip) {
-
-  palToggleLine(LINE_LED1);
-  chRegSetThreadName("server");
-  struct netconn *conn, *newconn;
-  conn = netconn_new(NETCONN_TCP);
-  netconn_bind(conn, (struct ip4_addr *) ip, 80);
-  netconn_listen(conn);
-  while (true) {
-    err_t accept_err = netconn_accept(conn, &newconn);
-    dbgprintf("accept_error = %d\n\r",accept_err);
-    if (accept_err != ERR_OK)
-    	continue;
-    chMBPostTimeout (&mb_conn, (msg_t)newconn, TIME_IMMEDIATE);
-  }
-
-}
-
-void up_callback_s(void *p)
-{
-	(void)p;
-	dbgprintf("cable in\r\n");
-	isConnection = 1;
-
-}
-void down_callback_s(void *p)
-{
-	(void)p;
-	dbgprintf("cable out\r\n");
-	isConnection = 0;
-}
-
 void server_test(void){
 
     halInit();
