@@ -229,9 +229,39 @@ void func_0x17_handler(modbus_package *query,modbus_package *modbus_answer){
 		modbus_answer->data[2*i+1] = read_value>>8;
 		modbus_answer->data[2*i+2] = read_value;
 	}
-	modbus_answer->length= 1+1+1+read_count*2;
+	modbus_answer->length = 1+1+1+read_count*2;
 	modbus_answer->data[MB_TCP_LENGTH] = 2*read_count;
 }
+
+void func_0x16_handler (modbus_package *query,  modbus_package *modbus_answer){
+	uint16_t address =  modbustcp_get_address(query);
+	if(address>=REGISTER_LEN){
+		get_exception(query->func, 0x02, modbus_answer);
+		return;
+	}
+	uint16_t and_mask = query->data[2]<<8| query->data[3];//Ќе понимаю какой должна быть валидаци€
+	uint16_t or_mask = query->data[4]<<8| query->data[5];//
+	int16_t value;
+
+	if(!read_holding_registers(address,&value)){
+		get_exception(query->func, 0x04, modbus_answer);
+		return;
+	}
+	value = (value & and_mask)|(or_mask & (~and_mask));
+	if(!write_holding_registers(address, value)){
+		get_exception(query->func, 0x04, modbus_answer);
+		return;
+	}
+	modbus_answer->length = 9;
+	modbus_answer->data[0] = address>>8;
+	modbus_answer->data[1] = address;
+	modbus_answer->data[2] = and_mask>>8;
+	modbus_answer->data[3] = and_mask;
+	modbus_answer->data[4] = or_mask>>8;
+	modbus_answer->data[5] = or_mask;
+
+}
+
 
 void modbus_query_handler(modbus_package* query,modbus_package *modbus_answer)
 {
@@ -272,6 +302,10 @@ void modbus_query_handler(modbus_package* query,modbus_package *modbus_answer)
 		case MB_FUN_WRITE_MULTIPLE_ANALOG_OUTPUT_REGISTER:
 		{
 			func_0x10or0x0F_handler(query,  address, count,modbus_answer);
+			break;
+		}
+		case MB_MASK_WRITE_ANALOG_OUTPUT_REGISTER:{
+			func_0x16_handler(query, modbus_answer);
 			break;
 		}
 		case MB_FUN_WRITE_READ_MULTIPLE_ANALOG_OUTPUT_REGISTER:

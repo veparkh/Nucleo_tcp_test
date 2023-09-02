@@ -4,6 +4,7 @@
 #include <lwip/api.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <serial.h>
 #include "modbusGet.h"
 #include "funcTCP.h"
 
@@ -37,14 +38,16 @@ int write_log(struct netconn *conn, modbus_package *query){
 			netconn_write(conn, "hi,i am log. I can't do something workful now, i just wanna say u got this\r\n",76, NETCONN_NOCOPY);
 		}
 		else if(recv_err_or_length > ERR_OK){
-				if(sscanf((char*)query,"%d",&tcp_code)==1){
+			int scanf= sscanf((char*)query,"%d",&tcp_code);
+			dbgprintf("sscanf:%d\r\n", scanf);
+				if(scanf==1){
 					dbgprintf("tcp_code log:%d", tcp_code);
 					if(tcp_code==100){
 						return ERR_OK;
 					}
 				}
-		}else
-		{
+		}
+		else{
 			return recv_err_or_length;
 		}
 	}

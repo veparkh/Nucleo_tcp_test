@@ -28,11 +28,11 @@ THD_FUNCTION(conn_handler, p){
 		while(true)
 		{
 			for(int i =0 ;i<300;i++){
-				chThdSleepMilliseconds(100);
 				recv_err_or_buflen = read_data(conn, 1000, &query);
 				if((!isConnection)||(recv_err_or_buflen>0)||(recv_err_or_buflen!=ERR_TIMEOUT))
 					break;
 			}
+			dbgprintf("recv_err : %d\r\n",recv_err_or_buflen);
 			if (recv_err_or_buflen > 0 && isConnection){
 				change_endian(query);
 				if(is_modbus_query(query,recv_err_or_buflen)){
@@ -41,7 +41,9 @@ THD_FUNCTION(conn_handler, p){
 				}
 				else{
 					change_endian(query);
-					if(tcp_query_handler(query, conn)!=ERR_OK)
+					int tcp_error = tcp_query_handler(query, conn);
+					dbgprintf("tcp_err : %d\r\n",tcp_error);
+					if(tcp_error!=ERR_OK)
 						break;
 					}
 			}
@@ -51,6 +53,7 @@ THD_FUNCTION(conn_handler, p){
 		}
 		netconn_close(conn);
 		netconn_delete(conn);
+		dbgprintf("Clear memory");
 	}
 }
 
