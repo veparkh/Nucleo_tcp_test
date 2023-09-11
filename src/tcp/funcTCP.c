@@ -8,6 +8,7 @@
 #include "modbusGet.h"
 #include "funcTCP.h"
 
+
 extern  bool isConnection;
 
 int32_t read_data(struct netconn *conn,int timeout,modbus_package **query){

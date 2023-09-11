@@ -262,7 +262,6 @@ void func_0x16_handler (modbus_package *query,  modbus_package *modbus_answer){
 
 }
 
-
 void modbus_query_handler(modbus_package* query,modbus_package *modbus_answer)
 {
 	int16_t address;

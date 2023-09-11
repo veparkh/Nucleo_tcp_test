@@ -44,6 +44,10 @@
    -----------------------------------------------
 */
 
+#define LWIP_PLATFORM_DIAG(x) do {dbgprintf x;} while(0)
+#define LWIP_DEBUG 1
+
+
 /**
  * SYS_LIGHTWEIGHT_PROT==1: if you want inter-task protection for certain
  * critical regions during buffer allocation, deallocation and memory
@@ -122,7 +126,7 @@
  * a lot of data that needs to be copied, this should be set high.
  */
 #ifndef MEM_SIZE
-#define MEM_SIZE                        800
+#define MEM_SIZE                        1500
 #endif
 
 /**
@@ -1888,14 +1892,14 @@
  * ETHARP_DEBUG: Enable debugging in etharp.c.
  */
 #ifndef ETHARP_DEBUG
-#define ETHARP_DEBUG                    LWIP_DBG_OFF
+#define ETHARP_DEBUG                    LWIP_DBG_ON
 #endif
 
 /**
  * NETIF_DEBUG: Enable debugging in netif.c.
  */
 #ifndef NETIF_DEBUG
-#define NETIF_DEBUG                     LWIP_DBG_OFF
+#define NETIF_DEBUG                     LWIP_DBG_ON
 #endif
 
 /**
@@ -1972,14 +1976,14 @@
  * MEM_DEBUG: Enable debugging in mem.c.
  */
 #ifndef MEM_DEBUG
-#define MEM_DEBUG                       LWIP_DBG_OFF
+#define MEM_DEBUG                       LWIP_DBG_ON
 #endif
 
 /**
  * MEMP_DEBUG: Enable debugging in memp.c.
  */
 #ifndef MEMP_DEBUG
-#define MEMP_DEBUG                      LWIP_DBG_OFF
+#define MEMP_DEBUG                      LWIP_DBG_ON
 #endif
 
 /**
@@ -2000,7 +2004,7 @@
  * TCP_DEBUG: Enable debugging for TCP.
  */
 #ifndef TCP_DEBUG
-#define TCP_DEBUG                       LWIP_DBG_OFF
+#define TCP_DEBUG                       LWIP_DBG_ON
 #endif
 
 /**
@@ -2071,7 +2075,7 @@
  * TCPIP_DEBUG: Enable debugging in tcpip.c.
  */
 #ifndef TCPIP_DEBUG
-#define TCPIP_DEBUG                     LWIP_DBG_OFF
+#define TCPIP_DEBUG                     LWIP_DBG_ON
 #endif
 
 /**
