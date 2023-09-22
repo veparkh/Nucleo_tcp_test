@@ -34,10 +34,15 @@ THD_FUNCTION(conn_handler, p){
 			}
 			dbgprintf("recv_err : %d\r\n",recv_err_or_buflen);
 			if (recv_err_or_buflen > 0 && isConnection){
+
 				change_endian(query);
+				dbgprintf("%d %d %d %d",query->tid,query->pid,query->length,query->uid);
 				if(is_modbus_query(query,recv_err_or_buflen)){
+					dbgprintf("its modbus\r\n");
 					modbus_query_handler(query, &modbus_answer);
-					netconn_write(conn, &modbus_answer, modbus_answer.length+6, NETCONN_NOCOPY);
+					uint16_t length = (modbus_answer.length<<8|modbus_answer.length>>8)+6;
+					dbgprintf("modbus length: %d\r\n",length);
+					netconn_write(conn, &modbus_answer, length, NETCONN_NOCOPY);
 				}
 				else{
 					change_endian(query);

@@ -8,7 +8,7 @@ PROJECT_CSRC 	= main.c \
 				  src/modbus/modbusFunc.c \
 				  src/modbus/modbusGet.c \
 				  src/modbus/modbusRegister.c\
-				  crs/modbus/requestHndler.c\
+				  srs/modbus/requestHandler.c\
 				  
 
 # C++ source files

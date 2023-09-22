@@ -27,6 +27,7 @@
 
 void func_0x01or0x02_handler (modbus_package *query, int16_t counter, int16_t address, modbus_package *modbus_answer){
 
+	dbgprintf("counter:%d, address:%d\r\n",counter,address);
 	uint8_t len_data,i, data=0, j=0, val;
 	if(counter<0x01 || counter>0x07D0){
 		get_exception(query->func, 0x03, modbus_answer);
@@ -42,6 +43,7 @@ void func_0x01or0x02_handler (modbus_package *query, int16_t counter, int16_t ad
 		len_data=counter/8;
 	modbus_answer->length=3+len_data;
 	modbus_answer->data[MB_TCP_LENGTH]=len_data;
+	dbgprintf("real_Length^%d\r\n",len_data);
 	bool (*table) (int16_t address, uint8_t *val);
 	if(query->func==0x01)
 	  table = read_coils;
@@ -62,6 +64,7 @@ void func_0x01or0x02_handler (modbus_package *query, int16_t counter, int16_t ad
 		counter--;
 		j++;
 	  }
+	  dbgprintf("0x0%d data:%d",query->func,data);
 	  modbus_answer->data[MB_TCP_DATA+k]=data;
 	  data = 0;
 	}

@@ -14,7 +14,6 @@ bool read_discrete_input(int16_t address, uint8_t *val){
 bool read_coils(int16_t address,uint8_t *val){
 	*val = Discrete_Output_Register[address];
 	return true;
-
 }
 bool write_coils(int16_t address,uint8_t val){
 	if(val)

@@ -4,6 +4,8 @@
 #include <lwip/api.h>
 #include "common.h"
 #include "stdint.h"
+#include "requestHandler.h"
+#include "modbusGet.h"
 char msg_c[200];
 
 thread_t *tp = NULL;
@@ -48,26 +50,35 @@ err_t read_data_c(struct netconn *conn){
 
 
 static THD_FUNCTION(tcp_client, req) {
-  Request *request = req;
-  chRegSetThreadName("client_thread");
-  err_t err_connect;
-  struct ip4_addr server_ip;
-  IP4_ADDR(&server_ip, 192, 168, 1, 120);
-    struct netconn *conn = netconn_new(NETCONN_TCP);
-    if(conn==NULL)
-    {
-    	chThdExit(ERR_MEM);
-    }
-    err_connect = netconn_connect(conn,&server_ip,80);
-    if (err_connect != ERR_OK)
-    {
-      netconn_close(conn);
-      netconn_delete(conn);
-      chThdExit(err_connect);
-    }
-    err_t error;
-    switch(request->TYPE){
-    case	READ:{
+	Request *request = req;
+	chRegSetThreadName("client_thread");
+	err_t err_connect;
+	struct ip4_addr server_ip;
+	IP4_ADDR(&server_ip, 192, 168, 1, 123);
+	struct netconn *conn = netconn_new(NETCONN_TCP);
+	if(conn==NULL)
+	{
+		chThdExit(ERR_MEM);
+	}
+	err_connect = netconn_connect(conn,&server_ip,80);
+	dbgprintf("connect:%d\r\n",err_connect);
+	if (err_connect != ERR_OK)
+	{
+	  netconn_close(conn);
+	  netconn_delete(conn);
+	  chThdExit(err_connect);
+	}
+	modbus_package query;
+	modbus_package answer;
+	form_MBAP(0, 0, 1, 0x02,&query);
+	dbgprintf("%d %d",query.uid,query.func);
+	err_t error;
+	error = request_0x01or0x02_handler(&query, &answer, 3, 5, conn);
+	dbgprintf("error:%d\r\n",error);
+	chThdSleepMilliseconds(100);
+    /*switch(request->TYPE){
+
+    case READ:{
     	error = read_data_c(conn);
     	break;
     	}
@@ -84,13 +95,14 @@ static THD_FUNCTION(tcp_client, req) {
     default:{
     	error = -100;
     	}
-    }
+    }*/
     netconn_close(conn);
     netconn_delete(conn);
-    chThdExit(error);
+    chThdExit(ERR_OK);
 }
 
 msg_t getData(Request request){
+	palToggleLine(LINE_LED2);
 	tp = chThdCreateFromHeap(NULL, THD_WORKING_AREA_SIZE(1024),"tcp", NORMALPRIO, tcp_client, &request);
 	return chThdWait(tp);
 }
@@ -133,12 +145,15 @@ void client_test(void){
     while (true) {
     	if (isConnectionEnabled){
     		Request request = {WRITE_READ,"Hi from client\r\n"};
+
         	msg_t err = getData(request);
+
         	if(err==ERR_OK){
         		dbgprintf(msg_c);
         	}else{
         	dbgprintf("err:%d\r\n",err);
         	}
+        	chThdSleepMilliseconds(100);
     	}
     	else{
     		dbgprintf("connectionIsNotEnabled:\r\n");
