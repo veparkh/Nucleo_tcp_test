@@ -1,16 +1,19 @@
-
-#include <stdbool.h>
 #include <lwipthread.h>
 #include <lwip/netif.h>
 #include <lwip/api.h>
-#include <threadsTCP.h>
-#include "modbusGet.h"
-#include "modbusFunc.h"
-#include "funcTCP.h"
-#include <serial.h>
-extern bool isConnection;
+#include <stdint.h>
 
-extern mailbox_t mb_conn;
+#include "common.h"
+#include "requestHandler.h"
+#include "modbusFunc.h"
+
+THD_WORKING_AREA(tcp_conn_handler1, 1024); // @suppress("Symbol is not resolved") // @suppress("Type cannot be resolved")
+THD_WORKING_AREA(tcp_conn_handler2, 1024); // @suppress("Symbol is not resolved") // @suppress("Type cannot be resolved")
+THD_WORKING_AREA(tcp_conn_handler3, 1024);
+THD_WORKING_AREA(tcp_conn_handler4, 1024);
+THD_WORKING_AREA(wa_tcp_server, 1024);
+
+
 
 
 THD_FUNCTION(conn_handler, p){
@@ -33,11 +36,13 @@ THD_FUNCTION(conn_handler, p){
 					break;
 			}
 			dbgprintf("recv_err : %d\r\n",recv_err_or_buflen);
+			uint16_t a = 0xA003;
+			dbgprintf("%d\t%d\t%d\t%d\t%d\t%d\t\r\n",((uint8_t*)query)[0], ((uint8_t*)query)[1], ((uint16_t*)query)[0], *((uint8_t *)&a), *(((uint8_t *)&a) + 1), 5);
 			if (recv_err_or_buflen > 0 && isConnection){
 
 				change_endian(query);
 				dbgprintf("%d %d %d %d",query->tid,query->pid,query->length,query->uid);
-				if(is_modbus_query(query,recv_err_or_buflen)){
+				if(is_modbus_package(query,recv_err_or_buflen)){
 					dbgprintf("its modbus\r\n");
 					modbus_query_handler(query, &modbus_answer);
 					uint16_t length = (modbus_answer.length<<8|modbus_answer.length>>8)+6;
@@ -77,18 +82,4 @@ THD_FUNCTION(tcp_server, ip) {
     	continue;
     chMBPostTimeout (&mb_conn, (msg_t)newconn, TIME_IMMEDIATE);
   }
-}
-
-void up_callback_s(void *p)
-{
-	(void)p;
-	dbgprintf("cable in\r\n");
-	isConnection = 1;
-
-}
-void down_callback_s(void *p)
-{
-	(void)p;
-	dbgprintf("cable out\r\n");
-	isConnection = 0;
 }

@@ -1,0 +1,55 @@
+#include <lwipthread.h>
+#include <lwip/netif.h>
+#include <lwip/api.h>
+#include "common.h"
+#include "stdint.h"
+#include "requestHandler.h"
+#include "modbusFunc.h"
+
+extern isConnectionEnabled;
+
+
+void up_callback_ñ(void *p)
+{
+	(void)p;
+	dbgprintf("cable in\r\n");
+	isConnectionEnabled = true;
+}
+void down_callback_ñ(void *p)
+{
+	(void)p;
+	dbgprintf("cable out\r\n");
+	isConnectionEnabled=false;
+}
+
+void modb_message(){
+	err_t err_connect;
+		struct ip4_addr server_ip;
+		IP4_ADDR(&server_ip, 192, 168, 1, 123);
+		struct netconn *conn = netconn_new(NETCONN_TCP);
+		if(conn==NULL)
+		{
+			chThdExit(ERR_MEM);
+		}
+		err_connect = netconn_connect(conn,&server_ip,80);
+		dbgprintf("connect:%d\r\n",err_connect);
+		if (err_connect != ERR_OK)
+		{
+		  netconn_close(conn);
+		  netconn_delete(conn);
+		  chThdExit(err_connect);
+		}
+		modbus_package query;
+		modbus_package answer;
+		form_MBAP(0, 0, 1, 0x02,&query);
+		dbgprintf("%d %d",query.uid,query.func);
+		err_t error;
+		resp_0x01_0x02 resp = request_0x01_0x02(&query, &answer, 3, 5, conn);
+		dbgprintf("error:%d\r\n",error);
+		chThdSleepMilliseconds(100);
+	    netconn_close(conn);
+	    netconn_delete(conn);
+	    chThdExit(ERR_OK);
+}
+
+

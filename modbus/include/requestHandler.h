@@ -11,7 +11,7 @@
 #include <lwipthread.h>
 #include <lwip/netif.h>
 #include <lwip/api.h>
-#include "modbusGet.h"
+#include "modbusFunc.h"
 int32_t request_0x01or0x02_handler(modbus_package *query,modbus_package *modbus_answer,uint16_t start_address,uint16_t count,struct netconn *conn);
 int32_t request_0x03or0x04_handler(modbus_package *query, int16_t counter, int16_t address,modbus_package *modbus_answer,uint16_t start_address,uint16_t count,struct netconn *conn);
 int32_t request_0x05_handler(modbus_package *query, int16_t address,uint8_t value,modbus_package *modbus_answer,struct netconn *conn);

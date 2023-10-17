@@ -5,12 +5,12 @@
  *      Author: vparx
  */
 #include "modbusFunc.h"
-#include "modbusRegister.h"
 #include "requestHandler.h"
 #include "funcTCP.h"
 #include "serial.h"
 
 int32_t request_0x01or0x02_handler(modbus_package *query,modbus_package *modbus_answer,uint16_t start_address,uint16_t count,struct netconn *conn){
+	// write_func start
 	query->data[MB_TCP_ADDRESS]= start_address>>8;
 	query->data[MB_TCP_ADDRESS+1]= start_address;
 	query->data[MB_TCP_COUNT]= count>>8;
@@ -25,19 +25,26 @@ int32_t request_0x01or0x02_handler(modbus_package *query,modbus_package *modbus_
 	if(recv_err!=0){
 		return recv_err;
 	}
+	// write_func end
+
+	// read_func start
 	int32_t recv_err_or_buflen = read_data(conn, 3000, &modbus_answer);
 
 	if(recv_err_or_buflen<0)
 		return recv_err_or_buflen;
 	change_endian(modbus_answer);
 	dbgprintf("buflen:%d\r\n",recv_err_or_buflen);
-	if(!is_modbus_query(modbus_answer, recv_err_or_buflen)){
+	if(!is_modbus_package(modbus_answer, recv_err_or_buflen)){
 		return -100;
 	}
+	// read_func end
+
+	// parse_exceptions start
 	if(is_exception(modbus_answer, query->func)){
 		handle_exception(modbus_answer);
 		return -100;
 	}
+	// parse_exceptions end
 		for(int i =1, j = 0;(i-1)*8+j<count;j++){
 			dbgprintf("data[%d] = %d",8*(i-1)+j+start_address,modbus_answer->data[i]&(1<<j));
 			if(modbus_answer->func == 0x01){
@@ -65,7 +72,7 @@ int32_t request_0x03or0x04_handler(modbus_package *query, int16_t counter, int16
 	if(recv_err_or_buflen<0)
 		return recv_err_or_buflen;
 	change_endian(modbus_answer);
-	if(!is_modbus_query(modbus_answer, recv_err_or_buflen)){
+	if(!is_modbus_package(modbus_answer, recv_err_or_buflen)){
 		return-100;
 	}
 	if(is_exception(modbus_answer, query->func)){
@@ -102,7 +109,7 @@ int32_t request_0x05_handler(modbus_package *query, int16_t address,uint8_t valu
 	if(recv_err_or_buflen<0)
 		return recv_err_or_buflen;
 	change_endian(modbus_answer);
-	if(!is_modbus_query(modbus_answer, recv_err_or_buflen)){
+	if(!is_modbus_package(modbus_answer, recv_err_or_buflen)){
 		return -100;
 	}
 	if(is_exception(modbus_answer, query->func)){
@@ -130,7 +137,7 @@ int32_t request_0x06_handler(modbus_package *query, int16_t address, int16_t val
 	if(recv_err_or_buflen<0)
 		return recv_err_or_buflen;
 	change_endian(modbus_answer);
-	if(!is_modbus_query(modbus_answer, recv_err_or_buflen))
+	if(!is_modbus_package(modbus_answer, recv_err_or_buflen))
 		return -100;
 	if(is_exception(modbus_answer, query->func)){
 		handle_exception(modbus_answer);
@@ -161,7 +168,7 @@ int32_t request_0x10or0x0F_handler(modbus_package *query, int16_t address,int16_
 	if(recv_err_or_buflen<0)
 		return recv_err_or_buflen;
 	change_endian(modbus_answer);
-	if(!is_modbus_query(modbus_answer, recv_err_or_buflen)){
+	if(!is_modbus_package(modbus_answer, recv_err_or_buflen)){
 		return -100;
 	}
 	if(is_exception(modbus_answer, query->func)){
@@ -196,7 +203,7 @@ int32_t request_0x16_handler (modbus_package *query, modbus_package *modbus_answ
 	if(recv_err_or_buflen<0)
 		return recv_err_or_buflen;
 	change_endian(modbus_answer);
-	if(!is_modbus_query(modbus_answer, recv_err_or_buflen)){
+	if(!is_modbus_package(modbus_answer, recv_err_or_buflen)){
 		return -100;
 	}
 	if(is_exception(modbus_answer, query->func)){
@@ -239,7 +246,7 @@ int32_t request_0x17_handler(modbus_package *query,modbus_package *modbus_answer
 	if(recv_err_or_buflen<0)
 		return recv_err_or_buflen;
 	change_endian(modbus_answer);
-	if(!is_modbus_query(modbus_answer, recv_err_or_buflen)){
+	if(!is_modbus_package(modbus_answer, recv_err_or_buflen)){
 		return -100;
 	}
 	if(is_exception(modbus_answer, query->func)){
@@ -251,35 +258,5 @@ int32_t request_0x17_handler(modbus_package *query,modbus_package *modbus_answer
 
 }
 
-void form_MBAP(uint16_t tid,uint16_t pid,uint8_t uid,uint8_t func,modbus_package *query){
-	query->func = func;
-	query->pid = pid;
-	query->tid = tid;
-	query->uid = uid;
-}
-bool is_exception(modbus_package *answer,uint8_t func){
-	if(answer->data[0]==func+0x80)
-		return true;
-	else
-		return false;
-}
-void handle_exception(modbus_package *answer){
-	switch(answer->data[0]){
-		case 0x01:{
-			dbgprintf("0x01 exception in func");
-			break;
-		}
-		case 0x02:{
-			dbgprintf("0x02 exception in func");
-			break;
-		}
-		case 0x03:{
-			dbgprintf("0x03 exception in func");
-			break;
-		}
-		case 0x04:{
-			dbgprintf("0x04 exception in func");
-			break;
-		}
-	}
-}
+
+

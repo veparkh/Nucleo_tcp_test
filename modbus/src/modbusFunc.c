@@ -1,8 +1,15 @@
 #include "ch.h"
 #include "hal.h"
 #include "modbusFunc.h"
-#include "modbusGet.h"
 
+
+void form_MBAP(uint16_t tid,uint16_t pid,uint16_t length, uint8_t uid,uint8_t func,modbus_package *query){
+	query->func = func;
+	query->pid = pid;
+	query->length = length;
+	query->tid = tid;
+	query->uid = uid;
+}
 
 //The Function returns the Register Address
 int16_t modbustcp_get_address(modbus_package* data)
@@ -19,7 +26,7 @@ int16_t modbustcp_get_count(modbus_package* data)
   return count;
 }
 
-//The Function returns 
+//The Function returns
 uint8_t modbustcp_get_boll_value(modbus_package* data)
 {
   uint8_t boll = data->data[MB_TCP_TAKE_DATA];
@@ -60,13 +67,7 @@ int8_t get_coil_value(modbus_package *query,uint16_t i, uint8_t shift){
 		return 0;
 }
 
-void change_endian(modbus_package *query){
-	query->tid = query->tid>>8 | query->tid<<8;
-	query->length = query->length>>8 | query->length<<8;
-	query->pid = query->pid>>8 | query->pid<<8;
-}
-
-bool is_modbus_query(modbus_package *query,int16_t buflen){
+bool is_modbus_package(modbus_package *query,int16_t buflen){
 		 return
 				 query->pid == 0
 				 &&
@@ -80,4 +81,35 @@ void get_exception(uint8_t func, uint8_t err_code, modbus_package *modbus_answer
 	modbus_answer->data[0] = err_code;
 	modbus_answer->length=3;
 }
+
+bool read_discrete_input(int16_t address, uint8_t *val){
+	*val = Discrete_Input_Register[address];
+	return true;
+}
+
+bool read_coils(int16_t address,uint8_t *val){
+	*val = Discrete_Output_Register[address];
+	return true;
+}
+bool write_coils(int16_t address,uint8_t val){
+	if(val)
+		Discrete_Output_Register[address] = 1;
+	else
+		Discrete_Output_Register[address] = 0;
+	return true;
+}
+bool read_inputs(int16_t address,int16_t *val){
+	*val = Analog_Input_Register[address];
+	return true;
+}
+bool write_holding_registers(int16_t address,int16_t val){
+	Analog_Output_Register[address] = val;
+	return true;
+}
+bool read_holding_registers(int16_t address,int16_t *val){
+	*val = Analog_Output_Register[address];
+	return true;
+}
+
+
 

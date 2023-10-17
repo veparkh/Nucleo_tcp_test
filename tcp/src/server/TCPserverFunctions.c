@@ -1,34 +1,17 @@
-
 #include <lwipthread.h>
 #include <lwip/netif.h>
 #include <lwip/api.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <serial.h>
-#include "modbusGet.h"
+#include "modbusFunc.h"
 #include "funcTCP.h"
-
+#include <stdbool.h>
+#include <serial.h>
 
 extern  bool isConnection;
 
-int32_t read_data(struct netconn *conn,int timeout,modbus_package **query){
-
-    struct netbuf *inbuf = NULL;
-    uint16_t buflen;
-    err_t recv_error;
-    netconn_set_recvtimeout(conn,timeout);
-    int32_t recv_error_or_buflen;
-    recv_error = netconn_recv(conn, &inbuf);
-    if (recv_error==0){
-    	netbuf_data(inbuf, (void **)query, &buflen);
-    	recv_error_or_buflen = buflen;
-    }
-    else{
-    	recv_error_or_buflen = recv_error;
-    }
-    netbuf_delete(inbuf);
-    return recv_error_or_buflen;
-}
+extern mailbox_t mb_conn;
 
 int write_log(struct netconn *conn, modbus_package *query){
 	int recv_err_or_length;
@@ -66,4 +49,18 @@ int tcp_query_handler(modbus_package *query, struct netconn *conn){
 		}
 	}
 	return ERR_VAL;
+}
+
+void up_callback_s(void *p)
+{
+	(void)p;
+	dbgprintf("cable in\r\n");
+	isConnection = 1;
+
+}
+void down_callback_s(void *p)
+{
+	(void)p;
+	dbgprintf("cable out\r\n");
+	isConnection = 0;
 }
