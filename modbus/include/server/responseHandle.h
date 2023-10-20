@@ -1,7 +1,6 @@
 #ifndef MODBUS_INCLUDE_SERVER_RESPONSEHANDLE_H_
 #define MODBUS_INCLUDE_SERVER_RESPONSEHANDLE_H_
 
-#include "modbusGet.h"
 #define MY_ID							1
 #define MB_TCP_LENGTH					0
 #define MB_TCP_ADDRESS                  0

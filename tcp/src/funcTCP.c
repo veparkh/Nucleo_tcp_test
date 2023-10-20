@@ -8,6 +8,7 @@
 #include "modbusFunc.h"
 #include "funcTCP.h"
 
+bool isConnectionEnabled = false;
 int32_t read_data(struct netconn *conn,int timeout,modbus_package **query){
 
     struct netbuf *inbuf = NULL;

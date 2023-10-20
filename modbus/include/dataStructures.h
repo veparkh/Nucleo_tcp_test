@@ -1,8 +1,10 @@
 #ifndef MODBUS_INCLUDE_DATASTRUCTURES_H_
 #define MODBUS_INCLUDE_DATASTRUCTURES_H_
 
-#include "modbusFunc.h"
+#include <stdint.h>
+#include <stdbool.h>
 
+#define REGISTER_LEN 100
 typedef struct modbus_package{
 	uint16_t tid;
 	uint16_t pid;
@@ -101,13 +103,13 @@ void fill_resp_0x0F_0x10(resp_0x0F_0x10 *resp, uint8_t count, uint8_t *bytes);
 void fill_resp_0x16(resp_0x16 *resp, uint8_t count, uint8_t *bytes);
 void fill_resp_0x17(resp_0x17 *resp, uint8_t count, uint8_t *bytes);*/
 
-void fill_req_0x01_0x02(req_0x01_0x02 *req, uint16_t address, uint16_t count);
-void fill_req_0x03_0x04(req_0x03_0x04 *req, uint16_t address, uint16_t count);
-void fill_req_0x05_0x06(req_0x05_0x06 *req, uint16_t address, uint16_t value );
-void fill_req_0x0F(req_0x0F *req, uint16_t address,uint16_t quantity, uint8_t count, uint8_t *bytes);
-void fill_req_0x10(req_0x10 *req, uint16_t address, uint16_t quantity,uint8_t count, uint16_t *bytes);
-void fill_req_0x16(req_0x16 *req, uint16_t address, uint16_t and_mask, uint16_t or_mask);
-void fill_req_0x17(req_0x17 *req, uint16_t read_address, uint16_t read_quantity, uint16_t write_address, uint16_t write_quantity,uin8_t write_count, uint16_t *write_bytes);
+uint16_t fill_req_0x01_0x02(req_0x01_0x02 *req, uint16_t address, uint16_t count);
+uint16_t fill_req_0x03_0x04(req_0x03_0x04 *req, uint16_t address, uint16_t count);
+uint16_t fill_req_0x05_0x06(req_0x05_0x06 *req, uint16_t address, uint16_t value );
+uint16_t fill_req_0x0F(req_0x0F *req, uint16_t address,uint16_t quantity, uint8_t count, uint8_t *bytes);
+uint16_t fill_req_0x10(req_0x10 *req, uint16_t address, uint16_t quantity,uint8_t count, uint16_t *bytes);
+uint16_t fill_req_0x16(req_0x16 *req, uint16_t address, uint16_t and_mask, uint16_t or_mask);
+uint16_t fill_req_0x17(req_0x17 *req, uint16_t read_address, uint16_t read_quantity, uint16_t write_address, uint16_t write_quantity,uint8_t write_count, uint16_t *write_bytes);
 
 
 void resp_change_endian(modbus_package *package);

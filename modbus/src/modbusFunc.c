@@ -3,6 +3,18 @@
 #include "modbusFunc.h"
 
 
+
+int16_t Analog_Input_Register[REGISTER_LEN];
+
+uint8_t Discrete_Input_Register[REGISTER_LEN];
+
+int16_t Analog_Output_Register[REGISTER_LEN];
+
+uint8_t Discrete_Output_Register[REGISTER_LEN];
+
+
+
+
 void form_MBAP(uint16_t tid,uint16_t pid,uint16_t length, uint8_t uid,uint8_t func,modbus_package *query){
 	query->func = func;
 	query->pid = pid;

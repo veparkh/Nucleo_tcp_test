@@ -3,26 +3,33 @@
 #include <lwip/api.h>
 #include "common.h"
 #include "stdint.h"
-#include "requestHandler.h"
 #include "modbusFunc.h"
+#include "TCPclientFunctions.h"
+extern  bool isConnectionEnabled;
 
-extern isConnectionEnabled;
+lwipthread_opts_t opts_c;
+struct ip4_addr ip_c, gateway_c, netmask_c;
 
 
-void up_callback_ñ(void *p)
+IP4_ADDR (&ip_c,192,168,1,124);
+IP4_ADDR (&gateway_c, 192, 168, 1, 1);
+IP4_ADDR (&netmask_c, 255, 255, 255, 0);
+uint8_t mac_address_c[6] = {0xC2, 0xAF, 0x51, 0x03, 0xCF, 0x46};
+
+void up_callback_c(void *p)
 {
 	(void)p;
 	dbgprintf("cable in\r\n");
 	isConnectionEnabled = true;
 }
-void down_callback_ñ(void *p)
+void down_callback_c(void *p)
 {
 	(void)p;
 	dbgprintf("cable out\r\n");
 	isConnectionEnabled=false;
 }
 
-void modb_message(){
+void modb_message(void){
 	err_t err_connect;
 		struct ip4_addr server_ip;
 		IP4_ADDR(&server_ip, 192, 168, 1, 123);
@@ -53,3 +60,6 @@ void modb_message(){
 }
 
 
+void tcp_init_client(){
+	tcpInit(&opts_c,ip_c, gateway_c,netmask_c,mac_address_c, down_callback_c,up_callback_c);
+}

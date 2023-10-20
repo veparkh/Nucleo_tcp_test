@@ -1,10 +1,3 @@
-/*
- * TCPserverThreads.h
- *
- *  Created on: 7 окт. 2023 г.
- *      Author: vparx
- */
-
 #ifndef TCP_INCLUDE_SERVER_TCPSERVERTHREADS_H_
 #define TCP_INCLUDE_SERVER_TCPSERVERTHREADS_H_
 

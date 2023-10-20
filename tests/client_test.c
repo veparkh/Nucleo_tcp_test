@@ -4,12 +4,11 @@
 #include <lwip/api.h>
 #include "common.h"
 #include "stdint.h"
-#include "requestHandler.h"
 #include "modbusFunc.h"
 #include "TCPclientOpts.h"
 #include "FuncTCP.h"
 #include "TCPclientFunctions.h"
-bool isConnectionEnabled = false;
+extern bool isConnectionEnabled = false;
 
 
 void client_test(void){

@@ -8,7 +8,7 @@
 #include "common.h"
 #include "TCPserverFunctions.h"
 
-bool isConnection = false;
+extern bool isConnection = false;
 mailbox_t mb_conn;
 msg_t mb_conn_buffer[5];
 MAILBOX_DECL(mb_conn, mb_conn_buffer, 20);

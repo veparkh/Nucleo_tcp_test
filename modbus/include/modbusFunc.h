@@ -1,22 +1,11 @@
-#ifndef MODBUS_MODBUSFUNC_H_
-#define MODBUS_MODBUSFUNC_H_
+#ifndef MODBUS_INCLUDE_MODBUSFUNC_H_
+#define MODBUS_INCLUDE_MODBUSFUNC_H_
 
 #include "ch.h"
 #include "hal.h"
 #include <stdint.h>
 #include <stdbool.h>
 #include "dataStructures.h"
-
-#define REGISTER_LEN 100
-
-int16_t Analog_Input_Register[REGISTER_LEN];
-
-uint8_t Discrete_Input_Register[REGISTER_LEN];
-
-int16_t Analog_Output_Register[REGISTER_LEN];
-
-uint8_t Discrete_Output_Register[REGISTER_LEN];
-
 
 bool read_discrete_input(int16_t address, uint8_t *val);
 

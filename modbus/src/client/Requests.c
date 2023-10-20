@@ -4,15 +4,16 @@
 #include <lwip/api.h>
 #include "dataStructures.h"
 #include "funcTCP.h"
+#include "modbusFunc.h"
 
 
-int32_t recv_err_or_buflen read_modbus(struct netconn *conn,int timeout,modbus_package **answer){
-	int32_t recv_err_or_buflen = read_data(conn, 3000, &answer);
+int32_t read_modbus(struct netconn *conn,int timeout,modbus_package **answer){
+	int32_t recv_err_or_buflen = read_data(conn, timeout, answer);
 		if(recv_err_or_buflen<0)
 			return recv_err_or_buflen;
 		resp_change_endian(*answer);
 		dbgprintf("buflen:%d\r\n",recv_err_or_buflen);
-		if(!is_modbus_package(answer, recv_err_or_buflen)){
+		if(!is_modbus_package(*answer, recv_err_or_buflen)){
 			return -100;
 		}
 		return recv_err_or_buflen;
@@ -48,115 +49,105 @@ void handle_exception(modbus_package *answer){
 	}
 }
 
+resp_0x01_0x02* request_0x01_0x02(modbus_package *query, uint16_t address, uint16_t count, struct netconn *conn){
 
+	query->length = fill_req_0x01_0x02((req_0x01_0x02*)query->data, address, count);
+	err_t recv_err = netconn_write(conn, query, 12, NETCONN_NOCOPY);
+	if(recv_err!=0){
+		return NULL;
+	}
+	modbus_package *answer;
+	int32_t recv_err_or_buflen = read_modbus(conn, 3000, &answer);
+	if(recv_err_or_buflen<0)
+		return NULL;
+	if(is_exception(answer, answer->func))
+		return NULL;
+	return (resp_0x01_0x02*)answer->data;
+}
+resp_0x03_0x04* request_0x03_0x04(modbus_package *query,uint16_t address,uint16_t count,struct netconn *conn){
 
-resp_0x01_0x02 request_0x01_0x02(modbus_package *query,uint16_t address,uint16_t count,struct netconn *conn){
-	req_0x01_0x02 *request = query->data;
-	fill_req_0x01_0x02(&request, address, count);
-	query->length = 6;
+	fill_req_0x03_0x04((req_0x03_0x04*) query->data, address, count);
 	err_t recv_err = netconn_write(conn, query, 12, NETCONN_NOCOPY);
 	if(recv_err!=0){
-		return recv_err;
+		return NULL;
 	}
 	modbus_package *answer;
 	int32_t recv_err_or_buflen = read_modbus(conn, 3000, &answer);
 	if(recv_err_or_buflen<0)
-		return recv_err_or_buflen;
+		return NULL;
 	if(is_exception(answer, answer->func))
-		return -100;
-	resp_0x01_0x02 *resp = answer->data;
-	return *resp;
+		return NULL;
+	return (resp_0x03_0x04*)answer->data;
 }
-resp_0x03_0x04 request_0x03_0x04(modbus_package *query,uint16_t address,uint16_t count,struct netconn *conn){
-	req_0x03_0x04 *request = query->data;
-	fill_req_0x03_0x04(&request, address, count);
+resp_0x05_0x06* request_0x05_0x06(modbus_package *query,uint16_t address,uint16_t count,struct netconn *conn){
+
+	fill_req_0x05_0x06((req_0x05_0x06*) query->data, address, count);
 	err_t recv_err = netconn_write(conn, query, 12, NETCONN_NOCOPY);
 	if(recv_err!=0){
-		return recv_err;
+		return NULL;
 	}
 	modbus_package *answer;
 	int32_t recv_err_or_buflen = read_modbus(conn, 3000, &answer);
 	if(recv_err_or_buflen<0)
-		return recv_err_or_buflen;
+		return NULL;
 	if(is_exception(answer, answer->func))
-		return -100;
-	resp_0x03_0x04 *resp = answer->data;
-	return *resp;
+		return NULL;
+	return (resp_0x05_0x06*)answer->data;
 }
-resp_0x05_0x06 request_0x05_0x06(modbus_package *query,uint16_t address,uint16_t count,struct netconn *conn){
-	req_0x05_0x06 *request = query->data;
-	fill_req_0x05_0x06(request, address, count);
-	err_t recv_err = netconn_write(conn, query, 12, NETCONN_NOCOPY);
-	if(recv_err!=0){
-		return recv_err;
-	}
-	modbus_package *answer;
-	int32_t recv_err_or_buflen = read_modbus(conn, 3000, &answer);
-	if(recv_err_or_buflen<0)
-		return recv_err_or_buflen;
-	if(is_exception(answer, answer->func))
-		return -100;
-	resp_0x05_0x06 *resp = answer->data;
-	return *resp;
-}
-resp_0x0F_0x10 request_0x0F(modbus_package *query,int16_t address,int16_t quantity,uint8_t byte_count,uint8_t *values, struct netconn *conn){
-	req_0x0F *request = query->data;
-	fill_req_0x0F(request, address, quantity, byte_count,values);
+resp_0x0F_0x10* request_0x0F(modbus_package *query,int16_t address,int16_t quantity,uint8_t byte_count,uint8_t *values, struct netconn *conn){
+
+	fill_req_0x0F((req_0x0F*)query->data, address, quantity, byte_count,values);
 	err_t recv_err = netconn_write(conn, query, 12, NETCONN_NOCOPY);
 	if(recv_err!=0)
-		return recv_err;
+		return NULL;
 	modbus_package *answer;
 	int32_t recv_err_or_buflen = read_modbus(conn, 3000, &answer);
 	if(recv_err_or_buflen<0)
-		return recv_err_or_buflen;
+		return NULL;
 	if(is_exception(answer, answer->func))
-		return -100;
-	resp_0x0F_0x10 *resp = answer->data;
-	return *resp;
+		return NULL;
+	return (resp_0x0F_0x10*)answer->data;
 }
-resp_0x0F_0x10 request_0x10(modbus_package *query,int16_t address,int16_t quantity,uint8_t byte_count,uint16_t *values, struct netconn *conn){
-	req_0x10 *request = query->data;
-	fill_req_0x10(request, address, quantity, byte_count, values);
+resp_0x0F_0x10* request_0x10(modbus_package *query,int16_t address,int16_t quantity,uint8_t byte_count,uint16_t *values, struct netconn *conn){
+
+	fill_req_0x10((req_0x10*)query->data, address, quantity, byte_count, values);
 	err_t recv_err = netconn_write(conn, query, 12, NETCONN_NOCOPY);
 	if(recv_err!=0)
-		return recv_err;
+		return NULL;
 	modbus_package *answer;
 	int32_t recv_err_or_buflen = read_modbus(conn, 3000, &answer);
 	if(recv_err_or_buflen<0)
-		return recv_err_or_buflen;
+		return NULL;
 	if(is_exception(answer, answer->func))
-		return -100;
-	resp_0x0F_0x10 *resp = answer->data;
-	return *resp;
+		return NULL;
+	return (resp_0x0F_0x10*)answer->data;
 }
-resp_0x16 request_0x16(modbus_package *query,uint16_t address,uint16_t and_mask,uint16_t or_mask, struct netconn *conn){
-	req_0x10 *request = query->data;
-	fill_req_0x16(request, address, and_mask, or_mask);
+resp_0x16* request_0x16(modbus_package *query,uint16_t address,uint16_t and_mask,uint16_t or_mask, struct netconn *conn){
+
+	fill_req_0x16((req_0x16*)query->data, address, and_mask, or_mask);
 	err_t recv_err = netconn_write(conn, query, 12, NETCONN_NOCOPY);
 	if(recv_err!=0)
-		return recv_err;
+		return NULL;
 	modbus_package *answer;
 	int32_t recv_err_or_buflen = read_modbus(conn, 3000, &answer);
 	if(recv_err_or_buflen<0)
-		return recv_err_or_buflen;
+		return NULL;
 	if(is_exception(answer, answer->func))
-		return -100;
-	resp_0x16 *resp = answer->data;
-	return *resp;
+		return NULL;
+	return (resp_0x16*)answer->data;
 }
-resp_0x17 request_0x17(modbus_package *query,uint16_t read_starting_address,uint16_t read_quantity,uint16_t write_starting_address,uint16_t write_quantity,uint8_t write_byte_count,uint16_t *values,struct netconn *conn){
-	req_0x17 *request = query->data;
-	fill_req_0x17(request, read_starting_address, read_quantity,write_starting_address, write_quantity,write_byte_count);
+resp_0x17* request_0x17(modbus_package *query,uint16_t read_starting_address,uint16_t read_quantity,uint16_t write_starting_address,uint16_t write_quantity,uint8_t write_byte_count,uint16_t *values,struct netconn *conn){
+
+	fill_req_0x17((req_0x17*)query->data, read_starting_address, read_quantity,write_starting_address, write_quantity,write_byte_count, values);
 	err_t recv_err = netconn_write(conn, query, 12, NETCONN_NOCOPY);
 	if(recv_err!=0)
-		return recv_err;
+		return NULL;
 	modbus_package *answer;
 	int32_t recv_err_or_buflen = read_modbus(conn, 3000, &answer);
 	if(recv_err_or_buflen<0)
-		return recv_err_or_buflen;
+		return NULL;
 	if(is_exception(answer, answer->func))
-		return -100;
-	resp_0x17 *resp = answer->data;
-	return *resp;
+		return NULL;
+	return (resp_0x17*)answer->data;
 }
 
