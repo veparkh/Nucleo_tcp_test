@@ -18,6 +18,11 @@ bool read_inputs(int16_t address,int16_t *val);
 bool write_holding_registers(int16_t address,int16_t val);
 bool read_holding_registers(int16_t address,int16_t *val);
 
+
+
+void setError(bool is_read_err, bool is_write_err,bool is_mb_exception, int8_t err_code);
+
+mb_error getError(void);
 #define MY_ID							1
 #define MB_TCP_LENGTH					0
 #define MB_TCP_ADDRESS                  0
@@ -41,7 +46,7 @@ bool read_holding_registers(int16_t address,int16_t *val);
 
 
 
-void form_MBAP(uint16_t tid,uint16_t pid,uint16_t length, uint8_t uid,uint8_t func,modbus_package *query);
+void form_MBAP(uint16_t tid,uint16_t pid, uint8_t uid,uint8_t func,modbus_package *query);
 
 
 int16_t modbustcp_get_address(modbus_package* data);

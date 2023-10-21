@@ -34,7 +34,7 @@ err_t write_data(struct netconn *conn,char *data){
 		return err;
 }
 
-void tcpInit(lwipthread_opts_t *opts,struct ip4_addr ip, struct ip4_addr gateway,struct ip4_addr netmask,uint8_t *mac_address,void (*down_callback) (void),void (*up_callback) (void)){
+void tcpInit(lwipthread_opts_t *opts,struct ip4_addr ip, struct ip4_addr gateway,struct ip4_addr netmask,uint8_t *mac_address,void (*down_callback) (void*),void (*up_callback) (void*)){
     opts->address = ip.addr;
     opts->gateway = gateway.addr;
     opts->netmask = netmask.addr;

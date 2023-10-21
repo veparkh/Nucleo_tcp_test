@@ -12,13 +12,21 @@ int16_t Analog_Output_Register[REGISTER_LEN];
 
 uint8_t Discrete_Output_Register[REGISTER_LEN];
 
+mb_error communication_session_error;
 
+void setError(bool is_read_err, bool is_write_err,bool is_mb_exception, int8_t err_code ){
+	communication_session_error.is_read_err = is_read_err;
+	communication_session_error.is_write_err=is_write_err;
+	communication_session_error.is_mb_exception=is_mb_exception;
+	communication_session_error.err_code = err_code;
+}
 
-
-void form_MBAP(uint16_t tid,uint16_t pid,uint16_t length, uint8_t uid,uint8_t func,modbus_package *query){
+mb_error getError(void){
+	return communication_session_error;
+}
+void form_MBAP(uint16_t tid,uint16_t pid, uint8_t uid,uint8_t func,modbus_package *query){
 	query->func = func;
 	query->pid = pid;
-	query->length = length;
 	query->tid = tid;
 	query->uid = uid;
 }

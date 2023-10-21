@@ -14,6 +14,13 @@ typedef struct modbus_package{
 	uint8_t data[REGISTER_LEN*2+10];
 }modbus_package;
 
+typedef struct mb_error{
+	bool is_read_err;
+	bool is_write_err;
+	bool is_mb_exception;
+	int8_t err_code;
+} mb_error;
+
 
 typedef struct resp_0x01_0x02{
 	uint8_t count;
