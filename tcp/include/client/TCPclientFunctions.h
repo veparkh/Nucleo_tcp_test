@@ -8,9 +8,6 @@
 
 #include "Requests.h"
 
-
-
-
 void up_callback_c(void *p);
 
 void down_callback_c(void *p);

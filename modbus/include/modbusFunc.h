@@ -48,7 +48,7 @@ mb_error getError(void);
 
 void form_MBAP(uint16_t tid,uint16_t pid, uint8_t uid,uint8_t func,modbus_package *query);
 
-
+void fill_tables(void);
 int16_t modbustcp_get_address(modbus_package* data);
 int16_t modbustcp_get_count(modbus_package* data);
 uint8_t modbustcp_get_boll_value(modbus_package* data);

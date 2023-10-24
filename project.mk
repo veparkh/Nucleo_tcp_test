@@ -6,11 +6,11 @@ PROJECT_CSRC 	= main.c \
 				modbus/src/dataStructures.c\
 				tcp/src/client/TCPclientFunctions.c\
 				tcp/src/server/TCPserverFunctions.c\
-				tcp/src/server/Threads.c\
+				tcp/src/server/TCPserverThreads.c\
 				tcp/src/funcTCP.c\
 				tests/server_test.c\
 				tests/client_test.c\
-				modbus/src/modbusFunc.c\
+				modbus/src/modbusFunc.c
 				
 # C++ source files
 PROJECT_CPPSRC 	= 

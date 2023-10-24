@@ -92,6 +92,7 @@ void change_2bytes_endian(uint16_t *value){
 	*(ptr+1) = HIGH;
 }
 
+
 void resp_change_endian(modbus_package *resp){
 	resp->tid = resp->tid>>8 | resp->tid<<8;
 	resp->length = resp->length>>8 | resp->length<<8;
@@ -102,7 +103,7 @@ void resp_change_endian(modbus_package *resp){
 			resp_0x03_0x04 *data;
 			data = (resp_0x03_0x04*)resp->data;
 			for(uint16_t i =0;i<data->count/2;i++){
-				change_2bytes_endian(&data->bytes[i]);
+				change_2bytes_endian((uint16_t*)&data->bytes[i]);
 			}
 			break;
 		}
@@ -111,7 +112,7 @@ void resp_change_endian(modbus_package *resp){
 			resp_0x05_0x06 *data;
 			data=(resp_0x05_0x06*)resp->data;
 			change_2bytes_endian(&data->count);
-			change_2bytes_endian(&data->byte);
+			change_2bytes_endian((uint16_t*)&data->byte);
 			break;
 		}
 		case 0x0F:
@@ -134,14 +135,14 @@ void resp_change_endian(modbus_package *resp){
 			resp_0x17 *data;
 			data=(resp_0x17*)resp->data;
 			for(uint16_t i=0;i<data->count/2;i++){
-				change_2bytes_endian(&data->bytes[i]);
+				change_2bytes_endian((uint16_t*)&data->bytes[i]);
 			}
 			break;
 		}
 	}
 }
 
-req_change_endian(modbus_package *req){
+void req_change_endian(modbus_package *req){
 	req->tid = req->tid>>8 | req->tid<<8;
 	req->length = req->length>>8 | req->length<<8;
 	req->pid = req->pid>>8 | req->pid<<8;
@@ -196,7 +197,7 @@ req_change_endian(modbus_package *req){
 			change_2bytes_endian(&data->write_quantity);
 			change_2bytes_endian(&data->read_address);
 			for(uint16_t i=0;i<data->write_quantity;i++){
-				change_2bytes_endian(&data->bytes[i]);
+				change_2bytes_endian((uint16_t*)&data->bytes[i]);
 			}
 			break;
 		}

@@ -43,6 +43,7 @@
    ---------- Platform specific locking ----------
    -----------------------------------------------
 */
+#include "serial.h"
 
 #define LWIP_PLATFORM_DIAG(x) do {dbgprintf x;} while(0)
 #define LWIP_DEBUG 1

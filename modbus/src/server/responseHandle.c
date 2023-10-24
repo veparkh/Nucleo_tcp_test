@@ -3,6 +3,7 @@
 #include <ch.h>
 #include "modbusFunc.h"
 #include "dataStructures.h"
+#include "serial.h"
 /* ----------------------- MBAP Header --------------------------------------*/
 /*
  *
@@ -321,5 +322,5 @@ void modbus_query_handler(modbus_package* query,modbus_package *modbus_answer)
 		}
 	}
 	query = NULL;
-	change_endian(modbus_answer);
+	resp_change_endian(modbus_answer);
 }

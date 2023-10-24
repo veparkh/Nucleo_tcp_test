@@ -5,10 +5,9 @@
 #include "common.h"
 #include "stdint.h"
 #include "modbusFunc.h"
-#include "TCPclientOpts.h"
 #include "FuncTCP.h"
 #include "TCPclientFunctions.h"
-extern bool isConnectionEnabled = false;
+extern bool isConnectionEnabled;
 
 
 void client_test(void){
@@ -16,7 +15,7 @@ void client_test(void){
     halInit();
     chSysInit();
     debug_stream_init();
-    tcpInit(&opts_c, ip_c, gateway_c, netmask_ñ, mac_address_ñ, down_callback_ñ, up_callback_ñ);
+    tcp_init_client();
 
     while (true) {
     	if (isConnectionEnabled){

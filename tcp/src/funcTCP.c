@@ -4,6 +4,7 @@
 #include <lwip/api.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 #include <serial.h>
 #include "modbusFunc.h"
 #include "funcTCP.h"

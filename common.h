@@ -12,7 +12,7 @@
 #include "hal.h"
 #include <serial.h>
 #include <tests.h>
-#include "string.h"
+#include <string.h>
 
 
 // List of all possible programs
