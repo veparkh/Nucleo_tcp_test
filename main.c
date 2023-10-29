@@ -2,6 +2,7 @@
 
 
 static inline void testRoutines(void) {
+
 #if(PROGRAM_ROUTINE == SERVER_TEST)
 	server_test();
 #elif(PROGRAM_ROUTINE == CLIENT_TEST)

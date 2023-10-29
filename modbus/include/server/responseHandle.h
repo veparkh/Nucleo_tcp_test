@@ -23,13 +23,14 @@
 #define MB_FUN_WRITE_READ_MULTIPLE_ANALOG_OUTPUT_REGISTER	0x17
 
 
-void func_0x01or0x02_handler(modbus_package *query, int16_t counter, int16_t address,modbus_package *modbus_answer);
-void func_0x03or0x04_handler(modbus_package *query, int16_t counter, int16_t address,modbus_package *modbus_answer);
-void func_0x05_handler(modbus_package *query, int16_t address,uint16_t value,modbus_package *modbus_answer);
-void func_0x06_handler(modbus_package *query, int16_t address,int16_t value,modbus_package *modbus_answer);
-void func_0x10or0x0F_handler(modbus_package *query, int16_t address,int16_t count_byte,modbus_package *modbus_answer);
-void func_0x17_handler(modbus_package *query,modbus_package *modbus_answer);
+void func_0x01or0x02_handler(modbus_package *query ,modbus_package *modbus_answer);
+void func_0x03or0x04_handler(modbus_package *query, modbus_package *modbus_answer);
+void func_0x05_handler(modbus_package *query, modbus_package *modbus_answer);
+void func_0x06_handler(modbus_package *query, modbus_package *modbus_answer);
+void func_0x0F_handler(modbus_package *query,modbus_package *modbus_answer);
+void func_0x10_handler(modbus_package *query,modbus_package *modbus_answer);
 void func_0x16_handler (modbus_package *query, modbus_package *modbus_answer);
+void func_0x17_handler(modbus_package *query,modbus_package *modbus_answer);
 void modbus_query_handler(modbus_package* query,modbus_package *modbus_answer);
 
 #endif /* MODBUS_INCLUDE_SERVER_RESPONSEHANDLE_H_ */

@@ -23,7 +23,7 @@ void down_callback_c(void *p)
 }
 
 void modb_message(void){
-	err_t err_connect;
+	    err_t err_connect;
 		struct ip4_addr server_ip;
 		IP4_ADDR(&server_ip, 192, 168, 1, 123);
 		struct netconn *conn = netconn_new(NETCONN_TCP);
@@ -46,7 +46,6 @@ void modb_message(void){
 		chThdSleepMilliseconds(100);
 	    netconn_close(conn);
 	    netconn_delete(conn);
-	    chThdExit(ERR_OK);
 }
 
 

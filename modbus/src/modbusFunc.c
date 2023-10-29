@@ -88,8 +88,8 @@ int16_t mb_get_multiple_analog_register(modbus_package* data,uint8_t count)
   return value;
 }
 
-int8_t get_coil_value(modbus_package *query,uint16_t i, uint8_t shift){
-	if(query->data[MB_TCP_MULTIPLE_REGISTER+i] & 1<<shift)
+int8_t get_coil_value(uint8_t *data, uint16_t i, uint8_t shift){
+	if(data[i] & 1<<shift)
 		return 1;
 	else
 		return 0;

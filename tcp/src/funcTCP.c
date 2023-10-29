@@ -10,7 +10,7 @@
 #include "funcTCP.h"
 
 bool isConnectionEnabled = false;
-int32_t read_data(struct netconn *conn,int timeout,modbus_package **query){
+int32_t read_data(struct netconn *conn,int timeout,char **query){
 
     struct netbuf *inbuf = NULL;
     uint16_t buflen;
@@ -36,12 +36,15 @@ err_t write_data(struct netconn *conn,char *data){
 }
 
 void tcpInit(lwipthread_opts_t *opts,struct ip4_addr ip, struct ip4_addr gateway,struct ip4_addr netmask,uint8_t *mac_address,void (*down_callback) (void*),void (*up_callback) (void*)){
+	palToggleLine(LINE_LED3);
     opts->address = ip.addr;
     opts->gateway = gateway.addr;
     opts->netmask = netmask.addr;
     opts->macaddress = mac_address;
     opts->link_up_cb = up_callback;
     opts->link_down_cb = down_callback;
+
     lwipInit(opts);
+	palToggleLine(LINE_LED2);
     chThdSleepSeconds(5);
 }

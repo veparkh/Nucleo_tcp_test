@@ -33,7 +33,7 @@ typedef struct resp_0x03_0x04{
 } resp_0x03_0x04;
 
 typedef struct resp_0x05_0x06{
-	uint16_t count;
+	uint16_t address;
 	int16_t byte;
 } resp_0x05_0x06;
 
@@ -103,12 +103,12 @@ typedef struct req_0x17{
 
 
 
-/*void fill_resp_0x01_0x02(resp_0x01_0x02 *resp, uint8_t count, uint8_t *bytes,);
-void fill_resp_0x03_0x04(resp_0x03_0x04 *resp, uint8_t count, uint8_t *bytes);
-void fill_resp_0x05_0x06(resp_0x05_0x06 *resp, uint8_t count, uint8_t *bytes);
-void fill_resp_0x0F_0x10(resp_0x0F_0x10 *resp, uint8_t count, uint8_t *bytes);
-void fill_resp_0x16(resp_0x16 *resp, uint8_t count, uint8_t *bytes);
-void fill_resp_0x17(resp_0x17 *resp, uint8_t count, uint8_t *bytes);*/
+uint16_t fill_resp_0x01_0x02(resp_0x01_0x02 *resp, uint16_t address, uint16_t count ,bool (*read_bit) (int16_t address, uint8_t *val));
+uint16_t fill_resp_0x03_0x04(resp_0x03_0x04 *resp, uint16_t address,uint16_t count, bool (*read_byte) (int16_t address, int16_t *val));
+uint16_t fill_resp_0x05_0x06(resp_0x05_0x06 *resp, uint16_t address, uint16_t value);
+uint16_t fill_resp_0x0F_0x10(resp_0x0F_0x10 *resp, uint16_t adddres, uint16_t count);
+uint16_t fill_resp_0x16(resp_0x16 *resp, uint16_t address, uint16_t and_mask,uint16_t or_mask);
+//uint16_t fill_resp_0x17(resp_0x17 *resp);
 
 uint16_t fill_req_0x01_0x02(req_0x01_0x02 *req, uint16_t address, uint16_t count);
 uint16_t fill_req_0x03_0x04(req_0x03_0x04 *req, uint16_t address, uint16_t count);

@@ -9,7 +9,11 @@
 #include "funcTCP.h"
 #include "dataStructures.h"
 #include "TCPserverFunctions.h"
-mailbox_t mb_conn;
+
+msg_t mb_conn_buffer[5];
+MAILBOX_DECL(mb_conn, mb_conn_buffer, 5);
+
+
 extern bool isConnectionEnabled;
 
 THD_FUNCTION(conn_handler, p){
@@ -22,29 +26,29 @@ THD_FUNCTION(conn_handler, p){
 	int recv_err_or_buflen;
 	while(true)
 	{
+
 		chMBFetchTimeout (&mb_conn, &cast_letter, TIME_INFINITE);
+		palToggleLine(LINE_LED3);
 		conn = (struct netconn*) cast_letter;
 		while(true)
 		{
 			for(int i =0 ;i<300;i++){
-				recv_err_or_buflen = read_data(conn, 1000, &query);
+				recv_err_or_buflen = read_data(conn, 3000,(char **) &query);
 				if((!isConnectionEnabled)||(recv_err_or_buflen>0)||(recv_err_or_buflen!=ERR_TIMEOUT))
 					break;
 			}
-			dbgprintf("recv_err : %d\r\n",recv_err_or_buflen);
 			if (recv_err_or_buflen > 0 && isConnectionEnabled){
 				req_change_endian(query);
-				dbgprintf("%d %d %d %d",query->tid,query->pid,query->length,query->uid);
+				dbgprintf(" %d\r\n",query->length);
 				if(is_modbus_package(query,recv_err_or_buflen)){
-					dbgprintf("its modbus\r\n");
 					modbus_query_handler(query, &modbus_answer);
 					uint16_t length = (modbus_answer.length<<8|modbus_answer.length>>8)+6;
-					dbgprintf("modbus length: %d\r\n",length);
+					dbgprintf("modbus length: %u\r\n",length);
 					netconn_write(conn, &modbus_answer, length, NETCONN_NOCOPY);
 				}
 				else{
 					req_change_endian(query);
-					int tcp_error = tcp_query_handler(query, conn);
+					int tcp_error = tcp_query_handler((char*)query, conn);
 					dbgprintf("tcp_err : %d\r\n",tcp_error);
 					if(tcp_error!=ERR_OK)
 						break;
@@ -62,7 +66,6 @@ THD_FUNCTION(conn_handler, p){
 
 THD_FUNCTION(tcp_server, ip) {
 
-  palToggleLine(LINE_LED1);
   chRegSetThreadName("server");
   struct netconn *conn, *newconn;
   conn = netconn_new(NETCONN_TCP);
@@ -73,6 +76,7 @@ THD_FUNCTION(tcp_server, ip) {
     dbgprintf("accept_error = %d\n\r",accept_err);
     if (accept_err != ERR_OK)
     	continue;
-    chMBPostTimeout (&mb_conn, (msg_t)newconn, TIME_IMMEDIATE);
+    msg_t msgPost = chMBPostTimeout (&mb_conn, (msg_t)newconn, TIME_IMMEDIATE);
+    dbgprintf("%d",msgPost);
   }
 }

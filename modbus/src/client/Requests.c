@@ -5,10 +5,10 @@
 #include "dataStructures.h"
 #include "funcTCP.h"
 #include "modbusFunc.h"
-
+#include "serial.h"
 
 int32_t read_modbus(struct netconn *conn,int timeout,modbus_package **answer){
-	int32_t recv_err_or_buflen = read_data(conn, timeout, answer);
+	int32_t recv_err_or_buflen = read_data(conn, timeout, (char**)answer);
 		if(recv_err_or_buflen<0)
 			return recv_err_or_buflen;
 		resp_change_endian(*answer);
@@ -82,8 +82,10 @@ resp_0x03_0x04* request_0x03_0x04(modbus_package *query,uint16_t address,uint16_
 	query->length = length+2;
 	req_change_endian(query);
 	modbus_package *answer  = write_read_modbus(length+2+6, conn, query);
+	dbgprintf("func: %d values: %d  %d %d\r\n",answer->func,answer->data[0],answer->data[1],answer->data[2]);
 	if (answer==NULL)
 		return NULL;
+	resp_change_endian(answer);
 	return (resp_0x03_0x04*)answer->data;
 }
 

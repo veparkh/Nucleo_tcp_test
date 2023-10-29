@@ -55,7 +55,7 @@ uint8_t modbustcp_get_boll_value(modbus_package* data);
 int16_t modbustcp_get_value(modbus_package* data);
 int8_t modbustcp_get_count_byte(modbus_package* data);
 int16_t mb_get_multiple_analog_register(modbus_package* data,uint8_t count);
-int8_t get_coil_value(modbus_package *query,uint16_t i, uint8_t shift);
+int8_t get_coil_value(uint8_t *data, uint16_t i, uint8_t shift);
 void get_exception(uint8_t func, uint8_t err_code, modbus_package *modbus_answer);
 bool is_modbus_package(modbus_package *query,int16_t buflen);
 

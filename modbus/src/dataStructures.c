@@ -1,24 +1,69 @@
 #include "dataStructures.h"
+#include "serial.h"
 
 
-/*
-void fill_resp_0x01_0x02(resp_0x01_0x02 *resp, uint8_t count, uint8_t *bytes){
+uint16_t fill_resp_0x01_0x02(resp_0x01_0x02 *resp, uint16_t address, uint16_t count, bool (*read_bit) (int16_t address, uint8_t *val)){
+
+	uint16_t len_data, i =0,  data=0, j=0;
+	uint8_t val;
+	if(count % 8)
+		len_data = count/8+1;
+	else
+		len_data = count/8;
+
+	for(int k=0;k<len_data;k++)
+		{
+		  i=0;
+		  while((count>0) && (i<8))
+		  {
+			if(!read_bit(address+j, &val)){
+				return 0;
+			}
+			data=data+(val<<i);
+			i++;
+			count--;
+			j++;
+		  }
+		  dbgprintf("data:%d",data);
+		  resp->bytes[k]=data;
+		  data = 0;
+		}
+	resp->count = len_data;
+	return 2+1+len_data;
+}
+uint16_t fill_resp_0x03_0x04(resp_0x03_0x04 *resp, uint16_t address, uint16_t count, bool (*read_byte) (int16_t address, int16_t *val)){
+
+	int16_t value;
+
+	  for(int i=0;i<count;i++)
+	  {
+		if(!read_byte(address+i,&value)){
+			return 0 ;
+		}
+		resp->bytes[i] = value;
+	  }
+
+	resp->count = 2*count;
+	return 2+1+2*count;
+}
+uint16_t fill_resp_0x05_0x06(resp_0x05_0x06 *resp, uint16_t address, uint16_t value){
+
+	resp->address = address;
+	resp->byte = value;
+	return 2+4;
+}
+uint16_t fill_resp_0x0F_0x10(resp_0x0F_0x10 *resp, uint16_t address, uint16_t count ){
+	resp->address = address;
 	resp->count = count;
-
+	return 2+4;
 }
-void fill_resp_0x03_0x04(resp_0x03_0x04 *resp, uint8_t count, uint8_t *bytes){
-
+uint16_t fill_resp_0x16(resp_0x16 *resp, uint16_t address, uint16_t and_mask,uint16_t or_mask){
+	resp->address = address;
+	resp->and_mask = and_mask;
+	resp->or_mask = or_mask;
+	return 2+6;
 }
-void fill_resp_0x05_0x06(resp_0x05_0x06 *resp, uint8_t count, uint8_t *bytes){
-
-}
-void fill_resp_0x0F_0x10(resp_0x0F_0x10 *resp, uint8_t count, uint8_t *bytes){
-
-}
-void fill_resp_0x16(resp_0x16 *resp, uint8_t count, uint8_t *bytes){
-
-}
-void fill_resp_0x17(resp_0x17 *resp, uint8_t count, uint8_t *bytes){
+/*uint16_t fill_resp_0x17(resp_0x17 *resp ) {
 
 }*/
 
@@ -86,46 +131,44 @@ uint16_t fill_req_0x17(req_0x17 *req, uint16_t read_address, uint16_t read_quant
 }
 
 void change_2bytes_endian(uint16_t *value){
-	uint8_t *ptr = (uint8_t*)value;
-	uint8_t  HIGH = *ptr;
-	*ptr = *(ptr+1);
-	*(ptr+1) = HIGH;
+    uint16_t val=*value;
+	*value = val>>8|val<<8;
 }
 
 
-void resp_change_endian(modbus_package *resp){
-	resp->tid = resp->tid>>8 | resp->tid<<8;
-	resp->length = resp->length>>8 | resp->length<<8;
-	resp->pid = resp->pid>>8 | resp->pid<<8;
-	switch(resp->func){
+void resp_change_endian(modbus_package *answer){
+	answer->tid = answer->tid>>8 | answer->tid<<8;
+	answer->length = answer->length>>8 | answer->length<<8;
+	answer->pid = answer->pid>>8 | answer->pid<<8;
+	switch(answer->func){
 		case 0x03:
 		case 0x04:{
-			resp_0x03_0x04 *data;
-			data = (resp_0x03_0x04*)resp->data;
-			for(uint16_t i =0;i<data->count/2;i++){
-				change_2bytes_endian((uint16_t*)&data->bytes[i]);
+			resp_0x03_0x04 *resp;
+			resp = (resp_0x03_0x04*)answer->data;
+			for(uint16_t i =0;i<resp->count/2;i++){
+				//change_2bytes_endian((uint16_t*)&data->bytes[i]);
+				resp->bytes[i]=resp->bytes[i]>>8|resp->bytes[i]<<8;
 			}
 			break;
 		}
 		case 0x05:
 		case 0x06:{
 			resp_0x05_0x06 *data;
-			data=(resp_0x05_0x06*)resp->data;
-			change_2bytes_endian(&data->count);
+			data=(resp_0x05_0x06*)answer->data;
 			change_2bytes_endian((uint16_t*)&data->byte);
 			break;
 		}
 		case 0x0F:
 		case 0x10:{
 			resp_0x0F_0x10 *data;
-			data=(resp_0x0F_0x10*)resp->data;
+			data=(resp_0x0F_0x10*)answer->data;
 			change_2bytes_endian(&data->address);
 			change_2bytes_endian(&data->count);
 			break;
 		}
 		case 0x16:{
 			resp_0x16 *data;
-			data=(resp_0x16*)resp->data;
+			data=(resp_0x16*)answer->data;
 			change_2bytes_endian(&data->address);
 			change_2bytes_endian(&data->and_mask);
 			change_2bytes_endian(&data->or_mask);
@@ -133,7 +176,7 @@ void resp_change_endian(modbus_package *resp){
 		}
 		case 0x17:{
 			resp_0x17 *data;
-			data=(resp_0x17*)resp->data;
+			data=(resp_0x17*)answer->data;
 			for(uint16_t i=0;i<data->count/2;i++){
 				change_2bytes_endian((uint16_t*)&data->bytes[i]);
 			}

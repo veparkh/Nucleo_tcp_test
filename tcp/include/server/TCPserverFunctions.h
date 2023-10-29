@@ -5,10 +5,13 @@
 #include <lwipthread.h>
 #include <lwip/netif.h>
 #include <lwip/api.h>
+#include "modbusFunc.h"
 
-int write_log(struct netconn *conn, modbus_package *query);
 
-int tcp_query_handler(modbus_package *query, struct netconn *conn);
+
+int write_log(struct netconn *conn);
+
+int tcp_query_handler(char *query, struct netconn *conn);
 
 void up_callback_s(void *p);
 void down_callback_s(void *p);
