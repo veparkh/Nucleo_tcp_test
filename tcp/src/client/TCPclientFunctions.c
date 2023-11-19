@@ -23,7 +23,7 @@ void down_callback_c(void *p)
 }
 
 void modb_message(void){
-	    err_t err_connect;
+	  /*  err_t err_connect;
 		struct ip4_addr server_ip;
 		IP4_ADDR(&server_ip, 192, 168, 1, 123);
 		struct netconn *conn = netconn_new(NETCONN_TCP);
@@ -40,12 +40,13 @@ void modb_message(void){
 		  chThdExit(err_connect);
 		}
 		modbus_package query;
+		modbus_package answer;
 		form_MBAP(0, 0, 1, 0x02,&query);
 		dbgprintf("%d %d",query.uid,query.func);
-		resp_0x01_0x02 *resp = request_0x01_0x02(&query, 3, 5, conn);
+		resp_0x01_0x02 *resp = request_0x01_0x02(&query, 3, 5, conn, &answer);
 		chThdSleepMilliseconds(100);
 	    netconn_close(conn);
-	    netconn_delete(conn);
+	    netconn_delete(conn);*/
 }
 
 

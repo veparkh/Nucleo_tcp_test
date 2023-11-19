@@ -51,7 +51,7 @@ typedef struct resp_0x16{
 typedef struct resp_0x17{
 
 	uint8_t count;
-	int16_t bytes[REGISTER_LEN];
+	uint8_t bytes[REGISTER_LEN*2];
 } resp_0x17;
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -82,7 +82,7 @@ typedef struct req_0x10{
 	uint16_t address;
 	uint16_t quantity;
 	uint8_t count;
-	uint16_t bytes[REGISTER_LEN];
+	uint8_t bytes[REGISTER_LEN*2];
 } req_0x10;
 
 typedef struct req_0x16{
@@ -97,14 +97,14 @@ typedef struct req_0x17{
 	uint16_t write_address;
 	uint16_t write_quantity;
 	uint8_t write_count;
-	int16_t bytes[REGISTER_LEN];
+	uint8_t bytes[REGISTER_LEN*2];
 } req_0x17;
 
 
 
 
 uint16_t fill_resp_0x01_0x02(resp_0x01_0x02 *resp, uint16_t address, uint16_t count ,bool (*read_bit) (int16_t address, uint8_t *val));
-uint16_t fill_resp_0x03_0x04(resp_0x03_0x04 *resp, uint16_t address,uint16_t count, bool (*read_byte) (int16_t address, int16_t *val));
+uint16_t fill_resp_0x03_0x04(uint8_t *data, uint16_t address,uint16_t count, bool (*read_byte) (int16_t address, int16_t *val));
 uint16_t fill_resp_0x05_0x06(resp_0x05_0x06 *resp, uint16_t address, uint16_t value);
 uint16_t fill_resp_0x0F_0x10(resp_0x0F_0x10 *resp, uint16_t adddres, uint16_t count);
 uint16_t fill_resp_0x16(resp_0x16 *resp, uint16_t address, uint16_t and_mask,uint16_t or_mask);
@@ -112,7 +112,7 @@ uint16_t fill_resp_0x16(resp_0x16 *resp, uint16_t address, uint16_t and_mask,uin
 
 uint16_t fill_req_0x01_0x02(req_0x01_0x02 *req, uint16_t address, uint16_t count);
 uint16_t fill_req_0x03_0x04(req_0x03_0x04 *req, uint16_t address, uint16_t count);
-uint16_t fill_req_0x05_0x06(req_0x05_0x06 *req, uint16_t address, uint16_t value );
+uint16_t fill_req_0x05_0x06(req_0x05_0x06 *req, uint16_t address, uint16_t value, uint8_t func );
 uint16_t fill_req_0x0F(req_0x0F *req, uint16_t address,uint16_t quantity, uint8_t count, uint8_t *bytes);
 uint16_t fill_req_0x10(req_0x10 *req, uint16_t address, uint16_t quantity,uint8_t count, uint16_t *bytes);
 uint16_t fill_req_0x16(req_0x16 *req, uint16_t address, uint16_t and_mask, uint16_t or_mask);

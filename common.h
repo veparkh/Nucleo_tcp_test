@@ -22,7 +22,7 @@
 
 
 // Selection of program to run
-#define PROGRAM_ROUTINE SERVER_TEST
+#define PROGRAM_ROUTINE CLIENT_TEST
 
 
 

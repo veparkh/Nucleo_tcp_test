@@ -4,9 +4,11 @@
 #include <lwip/api.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 #include "funcTCP.h"
 #include "TCPserverFunctions.h"
 #include "TCPServerThreads.h"
+
 extern  bool isConnectionEnabled;
 
 
@@ -16,7 +18,7 @@ int write_log(struct netconn *conn){
 	int recv_err_or_length;
 	int tcp_code;
 	while(isConnectionEnabled){
-		recv_err_or_length = read_data(conn, 1000, (char**)&query);
+		recv_err_or_length = read_data(conn, 1000, (char*)&query);
 		if(recv_err_or_length==ERR_TIMEOUT){
 			netconn_write(conn, "hi,i am log. I can't do something workful now, i just wanna say u got this\r\n",76, NETCONN_NOCOPY);
 		}
@@ -77,7 +79,6 @@ void tcp_init_server(void){
 	IP4_ADDR(&gateway_s, 192, 168, 1, 1);
 	IP4_ADDR(&netmask_s, 255, 255, 255, 0);
 
-
 	opts_s.address = ip_s.addr;
 	opts_s.gateway = gateway_s.addr;
 	opts_s.netmask = netmask_s.addr;
@@ -87,6 +88,6 @@ void tcp_init_server(void){
 	lwipInit(&opts_s);
 	chThdSleepSeconds(5);
 	chThdCreateStatic(wa_tcp_server, 2048, NORMALPRIO, tcp_server, (void*)&ip_s);
-	chThdCreateStatic(tcp_conn_handler1, 1024, NORMALPRIO, conn_handler,NULL);
-	chThdCreateStatic(tcp_conn_handler2, 1024, NORMALPRIO, conn_handler,NULL);
+	chThdCreateStatic(tcp_conn_handler1, 2048, NORMALPRIO, conn_handler, NULL);
+	chThdCreateStatic(tcp_conn_handler2, 2048, NORMALPRIO, conn_handler, NULL);
 }

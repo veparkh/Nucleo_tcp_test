@@ -20,35 +20,34 @@ THD_FUNCTION(conn_handler, p){
 	(void) p;
 	chRegSetThreadName("conn_handler");
 	msg_t cast_letter;
-	modbus_package modbus_answer;
-	modbus_package *query = NULL;
+	modbus_package modbus_answer = {0};
+	modbus_package query = {0};
 	struct netconn *conn;
 	int recv_err_or_buflen;
 	while(true)
 	{
-
+		dbgprintf("is_conn_enabled: %d\r\n", isConnectionEnabled);
 		chMBFetchTimeout (&mb_conn, &cast_letter, TIME_INFINITE);
-		palToggleLine(LINE_LED3);
 		conn = (struct netconn*) cast_letter;
 		while(true)
 		{
-			for(int i =0 ;i<300;i++){
-				recv_err_or_buflen = read_data(conn, 3000,(char **) &query);
+			for(int i =0 ;i<3000;i++){
+				recv_err_or_buflen = read_data(conn, 3000,(char*)&query);
 				if((!isConnectionEnabled)||(recv_err_or_buflen>0)||(recv_err_or_buflen!=ERR_TIMEOUT))
 					break;
 			}
 			if (recv_err_or_buflen > 0 && isConnectionEnabled){
-				req_change_endian(query);
-				dbgprintf(" %d\r\n",query->length);
-				if(is_modbus_package(query,recv_err_or_buflen)){
-					modbus_query_handler(query, &modbus_answer);
+				if(is_modbus_package(&query,recv_err_or_buflen)){
+					req_change_endian(&query);
+					//dbgprintf("query length: %u\r\n",query.length);
+					modbus_query_handler(&query, &modbus_answer);
 					uint16_t length = (modbus_answer.length<<8|modbus_answer.length>>8)+6;
-					dbgprintf("modbus length: %u\r\n",length);
-					netconn_write(conn, &modbus_answer, length, NETCONN_NOCOPY);
+					dbgprintf("answer length: %u\r\n",length);
+					err_t write_err = netconn_write(conn, &modbus_answer, length, NETCONN_NOCOPY);
+					dbgprintf("write_err: %d", write_err);
 				}
 				else{
-					req_change_endian(query);
-					int tcp_error = tcp_query_handler((char*)query, conn);
+					int tcp_error = tcp_query_handler((char*)&query, conn);
 					dbgprintf("tcp_err : %d\r\n",tcp_error);
 					if(tcp_error!=ERR_OK)
 						break;
@@ -80,3 +79,4 @@ THD_FUNCTION(tcp_server, ip) {
     dbgprintf("%d",msgPost);
   }
 }
+

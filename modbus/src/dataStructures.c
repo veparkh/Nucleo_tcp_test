@@ -31,7 +31,7 @@ uint16_t fill_resp_0x01_0x02(resp_0x01_0x02 *resp, uint16_t address, uint16_t co
 	resp->count = len_data;
 	return 2+1+len_data;
 }
-uint16_t fill_resp_0x03_0x04(resp_0x03_0x04 *resp, uint16_t address, uint16_t count, bool (*read_byte) (int16_t address, int16_t *val)){
+uint16_t fill_resp_0x03_0x04(uint8_t *data, uint16_t address, uint16_t count, bool (*read_byte) (int16_t address, int16_t *val)){
 
 	int16_t value;
 
@@ -40,10 +40,11 @@ uint16_t fill_resp_0x03_0x04(resp_0x03_0x04 *resp, uint16_t address, uint16_t co
 		if(!read_byte(address+i,&value)){
 			return 0 ;
 		}
-		resp->bytes[i] = value;
+		data[2*i+1] = value>>8;
+		data[2*i+2] = value;
 	  }
 
-	resp->count = 2*count;
+	data[0] = 2*count;
 	return 2+1+2*count;
 }
 uint16_t fill_resp_0x05_0x06(resp_0x05_0x06 *resp, uint16_t address, uint16_t value){
@@ -78,8 +79,12 @@ uint16_t fill_req_0x03_0x04(req_0x03_0x04 *req, uint16_t address, uint16_t count
 	req->count = count;
 	return 4;
 }
-uint16_t fill_req_0x05_0x06(req_0x05_0x06 *req, uint16_t address, uint16_t value ){
+uint16_t fill_req_0x05_0x06(req_0x05_0x06 *req, uint16_t address, uint16_t value,uint8_t func){
 	req->address = address;
+	if(func==0x06){
+		req->value = value;
+		return 4;
+	}
 	if(value)
 		req->value = 0xFF00;
 	else
@@ -131,8 +136,7 @@ uint16_t fill_req_0x17(req_0x17 *req, uint16_t read_address, uint16_t read_quant
 }
 
 void change_2bytes_endian(uint16_t *value){
-    uint16_t val=*value;
-	*value = val>>8|val<<8;
+	*value = *value>>8|*value<<8;
 }
 
 
@@ -143,46 +147,47 @@ void resp_change_endian(modbus_package *answer){
 	switch(answer->func){
 		case 0x03:
 		case 0x04:{
-			resp_0x03_0x04 *resp;
-			resp = (resp_0x03_0x04*)answer->data;
-			for(uint16_t i =0;i<resp->count/2;i++){
-				//change_2bytes_endian((uint16_t*)&data->bytes[i]);
-				resp->bytes[i]=resp->bytes[i]>>8|resp->bytes[i]<<8;
-			}
+			/*for(uint16_t i =1;i<=answer->data[0]/2;i++){
+				dbgprintf("change_byte_count: %d\r\n", answer->data[0]/2);
+				uint8_t tmp = answer->data[i*2-1];
+				answer->data[i*2-1] = answer->data[i*2];
+				answer->data[i*2] = tmp;
+			}*/
 			break;
 		}
 		case 0x05:
-		case 0x06:{
-			resp_0x05_0x06 *data;
-			data=(resp_0x05_0x06*)answer->data;
-			change_2bytes_endian((uint16_t*)&data->byte);
-			break;
-		}
+		case 0x06:
 		case 0x0F:
 		case 0x10:{
-			resp_0x0F_0x10 *data;
-			data=(resp_0x0F_0x10*)answer->data;
-			change_2bytes_endian(&data->address);
-			change_2bytes_endian(&data->count);
+			for(uint16_t i =0;i<2;i++){
+				uint8_t tmp = answer->data[i*2];
+				answer->data[i*2] = answer->data[i*2+1];
+				answer->data[i*2+1] = tmp;
+			}
 			break;
 		}
 		case 0x16:{
-			resp_0x16 *data;
-			data=(resp_0x16*)answer->data;
-			change_2bytes_endian(&data->address);
-			change_2bytes_endian(&data->and_mask);
-			change_2bytes_endian(&data->or_mask);
+			for(uint16_t i =0;i<3;i++){
+				uint8_t tmp = answer->data[i*2];
+				answer->data[i*2] = answer->data[i*2+1];
+				answer->data[i*2+1] = tmp;
+			}
 			break;
 		}
 		case 0x17:{
-			resp_0x17 *data;
-			data=(resp_0x17*)answer->data;
-			for(uint16_t i=0;i<data->count/2;i++){
-				change_2bytes_endian((uint16_t*)&data->bytes[i]);
+
+			for(uint16_t i =0;i<answer->data[0]/2;i++){
+				uint8_t tmp = answer->data[i*2+1];
+				answer->data[i*2+1] = answer->data[i*2+2];
+				answer->data[i*2+2] = tmp;
 			}
 			break;
 		}
 	}
+	for(uint8_t i=0; i < 28; i++) {
+		dbgprintf("%x\t", *(((uint8_t*)answer)+i));
+	}
+	dbgprintf("\r\n");
 }
 
 void req_change_endian(modbus_package *req){
@@ -190,57 +195,51 @@ void req_change_endian(modbus_package *req){
 	req->length = req->length>>8 | req->length<<8;
 	req->pid = req->pid>>8 | req->pid<<8;
 	switch(req->func){
+		case 0x01:
+		case 0x02:
 		case 0x03:
-		case 0x04:{
-			req_0x03_0x04 *data;
-			data = (req_0x03_0x04*)req->data;
-			change_2bytes_endian(&data->address);
-			change_2bytes_endian(&data->count);
-			break;
-		}
+		case 0x04:
 		case 0x05:
-		case 0x06:{
-			req_0x05_0x06 *data;
-			data=(req_0x05_0x06*)req->data;
-			change_2bytes_endian(&data->address);
-			change_2bytes_endian(&data->value);
-			break;
-		}
+		case 0x06:
 		case 0x0F:{
-			req_0x0F *data;
-			data=(req_0x0F*)req->data;
-			change_2bytes_endian(&data->address);
-			change_2bytes_endian(&data->quantity);
+			for(uint16_t i =0;i<2;i++){
+				uint8_t tmp = req->data[i*2];
+				req->data[i*2] = req->data[i*2+1];
+				req->data[i*2+1] = tmp;
+			}
 			break;
 		}
 		case 0x10:{
-			req_0x10 *data;
-			data=(req_0x10*)req->data;
-			for(uint16_t i=0;i<data->quantity;i++){
-				change_2bytes_endian(&data->bytes[i]);
+			for(uint16_t i =0;i<req->data[4]/2;i++){
+				uint8_t tmp = req->data[i*2+5];
+				req->data[i*2+5] = req->data[i*2+6];
+				req->data[i*2+6] = tmp;
 			}
-			change_2bytes_endian(&data->address);
-			change_2bytes_endian(&data->quantity);
+			for(uint16_t i =0;i<2;i++){
+				uint8_t tmp = req->data[i*2];
+				req->data[i*2] = req->data[i*2+1];
+				req->data[i*2+1] = tmp;
+			}
 			break;
 		}
 		case 0x16:{
-			req_0x16 *data;
-			data=(req_0x16*)req->data;
-			change_2bytes_endian(&data->address);
-			change_2bytes_endian(&data->and_mask);
-			change_2bytes_endian(&data->or_mask);
+			for(uint16_t i =0;i<3;i++){
+				uint8_t tmp = req->data[i*2];
+				req->data[i*2] = req->data[i*2+1];
+				req->data[i*2+1] = tmp;
+			}
 			break;
 		}
 		case 0x17:{
-			req_0x17 *data;
-			data=(req_0x17*)req->data;
-			change_2bytes_endian(&data->read_address);
-			change_2bytes_endian(&data->read_quantity);
-			change_2bytes_endian(&data->write_address);
-			change_2bytes_endian(&data->write_quantity);
-			change_2bytes_endian(&data->read_address);
-			for(uint16_t i=0;i<data->write_quantity;i++){
-				change_2bytes_endian((uint16_t*)&data->bytes[i]);
+			for(uint16_t i =0;i<4;i++){
+				uint8_t tmp = req->data[i*2];
+				req->data[i*2] = req->data[i*2+1];
+				req->data[i*2+1] = tmp;
+			}
+			for(uint16_t i =0;i<req->data[8]/2;i++){
+				uint8_t tmp = req->data[i*2+9];
+				req->data[i*2+9] = req->data[i*2+10];
+				req->data[i*2+10] = tmp;
 			}
 			break;
 		}

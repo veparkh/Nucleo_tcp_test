@@ -5,7 +5,7 @@
 
 
 
-int32_t read_data(struct netconn *conn,int timeout, char **query);
+int32_t read_data(struct netconn *conn,int timeout, char *query);
 
 err_t write_data(struct netconn *conn,char *data);
 
