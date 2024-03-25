@@ -8,7 +8,7 @@ char msg1[200];
 char msg2[200];
 mailbox_t mb_conn;
 msg_t mb_conn_buffer[5];
-MAILBOX_DECL(mb_conn, mb_conn_buffer, 20);
+MAILBOX_DECL(mb_conn, mb_conn_buffer, 5);
 
 err_t write_data(struct netconn *conn){
     return netconn_write(conn, "hi client!", strlen("hi client!"), NETCONN_NOCOPY);
